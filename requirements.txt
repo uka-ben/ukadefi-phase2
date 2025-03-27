@@ -1,4 +1,6 @@
+matplotlib
 pillow
 scipy
 brotli
 pygame
+plotly
