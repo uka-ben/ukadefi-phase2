@@ -353,7 +353,7 @@ def trigger_alert(alert_type, price, timestamp):
             elif alert_type == "Bearish Divergence":
                 sound_file = "alert1.wav"
             elif alert_type == "RSI Crossover":
-                sound_file = "alert_neutral.wav"
+                sound_file = "alert1.wav"
                 
             if sound_file:
                 sound = pygame.mixer.Sound(sound_file)
