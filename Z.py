@@ -672,56 +672,47 @@ def wide_swing_2(data):
     plt.tight_layout()
     return fig, current_signals
 
-# Strategy 3: Short Swing 1
-def short_swing_1(data):
+# Main app display
+def main_display():
+
+    #st.markdown('<div class="background">', unsafe_allow_html=True)
+
+
+    st.header(f"{symbol} ({interval})")
+    
+    # Initialize SSE client if needed
+    if live_update and st.session_state.sse_client is None:
+        st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
+        st.session_state.sse_client.start()
+    
+    # Get data based on update mode
+    if live_update:
+        # Check for SSE updates
+        update = st.session_state.sse_client.get_update()
+        if update:
+            st.session_state.last_data = update_data_with_sse(
+                st.session_state.last_data,
+                update
+            )
+        data = st.session_state.last_data if st.session_state.last_data is not None else load_initial_data(symbol, interval, lookback, api_key)
+    else:
+        # Stop SSE if running
+        if st.session_state.sse_client is not None:
+            st.session_state.sse_client.stop()
+            st.session_state.sse_client = None
+        
+        # Load regular data
+        data = load_initial_data(symbol, interval, lookback, api_key)
+        st.session_state.last_data = data
+    
     if data.empty:
-        return plt.figure(), {}
+        st.warning("No data available - check your API key and symbol")
+        return
     
-    data = data.copy()
-    # Apply Calculations
-    data['RSI_14'] = compute_rsi(data['Close'])
-    data['RSI_5'] = compute_rsi(data['Close'], period=5)
-    data['RSI_20'] = compute_rsi(data['Close'], period=20)
-    data['MACD'], data['Signal'] = compute_macd(data)
-    data['K'], data['D'], data['J'] = compute_kdj(data)
-
-    # Find Strong Extrema
-    maxima, minima = find_extrema(data['Close'], order=20)
-    
-    # Compute Divergences
-    data['DIV_RSI'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['RSI_14'].diff() > -1) & (data['RSI_14'] > 50), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['RSI_14'].diff() < 1) & (data['RSI_14'] < 50), 1, 0)
-    )
-
-    data['DIV_MACD'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['MACD'].diff() > -0.1) & (data['MACD'] > 0), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['MACD'].diff() < 0.1) & (data['MACD'] < 0), 1, 0)
-    )
-
-    data['DIV_KDJ'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['J'].diff() > -30) & (data['J'] > 50), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['J'].diff() < 30) & (data['J'] < 50), 1, 0)
-    )
-
-    # Strong Divergences Only (Require at least 2 Confirmations)
-    data["Final_Divergence"] = (
-        (data['DIV_RSI'] + data['DIV_MACD'] + data['DIV_KDJ']) >= 2
-    ).astype(int) - (
-        (data['DIV_RSI'] + data['DIV_MACD'] + data['DIV_KDJ']) <= -2
-    ).astype(int)
-
-    # Track current signals
-    current_signals = {
-        "Bullish Divergence": data.index[data['Final_Divergence'] == 1].tolist(),
-        "Bearish Divergence": data.index[data['Final_Divergence'] == -1].tolist(),
-        "RSI Crossover": []
-    }
-
-    # Check RSI crossovers
-    crossover_up = (data['RSI_5'] > data['RSI_20']) & (data['RSI_5'].shift(1) <= data['RSI_20'].shift(1))
-    crossover_down = (data['RSI_5'] < data['RSI_20']) & (data['RSI_5'].shift(1) >= data['RSI_20'].shift(1))
-    current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
-
-    # Plotting
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), grids
+    # Strategy display
+    if page == "Wide Swing 1":
+        fig, current_signals = wide_swing_1(data)
+    elif page == "Wide Swing 2":
+        fig, current_signals = wide_swing_2(data)
+    elif page == "Short Swing 1":
+        fig, current_signals = short_swing_1(data)
