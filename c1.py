@@ -172,9 +172,10 @@ interval = st.selectbox("Interval", ["1min", "5min", "30min", "1h", "4h", "1day"
 st.sidebar.title("Controls")
 page = st.radio(
     "Select Strategy", 
-    ["Wide Swing 1", "Wide Swing 2", "Short Swing 1", "Short Swing 2"],
+    ["Wide Swing 1", "Wide Swing 2", "Short Swing 1", "Short Swing 2", "Multi-Timeframe Divergence"],
     index=0, horizontal=True
 )
+
 
 # API Configuration
 api_key = "cef197ce3e054ee69d6c795401b229cd"
@@ -351,18 +352,216 @@ def trigger_alert(alert_type, price, timestamp):
     st.session_state.alert_history = st.session_state.alert_history[-50:]
 
 # Strategy 1: Wide Swing 1
+# ... (keep all the imports and initial setup code the same until the strategy functions)
+
+# Strategy 1: Wide Swing 1 (updated version)
 def wide_swing_1(data):
     if data.empty:
         return plt.figure(), {}
     
     data = data.copy()
+    
+    # Compute RSI with the new function
+    def compute_rsi2(series, period=36):
+        delta = series.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        return 100 - (100 / (1 + rs))
+
+    data['RSI_10'] = compute_rsi2(data['Close'], period=10)
+    data['RSI_24'] = compute_rsi2(data['Close'], period=24)
+
+    # Compute MACD and Histogram
+    short_ema = data['Close'].ewm(span=12, adjust=False).mean()
+    long_ema = data['Close'].ewm(span=26, adjust=False).mean()
+    data['MACD'] = short_ema - long_ema
+    data['Signal_Line'] = data['MACD'].ewm(span=9, adjust=False).mean()
+    data['MACD_Hist'] = data['MACD'] - data['Signal_Line']
+
+    # Peak & Trough Detection (Rolling Window)
+    WINDOW = 35  # Adjust window size
+
+    data['Local_Highs'] = data['Close'][data['Close'] == data['Close'].rolling(WINDOW, center=True).max()]
+    data['Local_Lows'] = data['Close'][data['Close'] == data['Close'].rolling(WINDOW, center=True).min()]
+
+    data['RSI_Highs'] = data['RSI_10'][data['RSI_10'] == data['RSI_10'].rolling(WINDOW, center=True).max()]
+    data['RSI_Lows'] = data['RSI_10'][data['RSI_10'] == data['RSI_10'].rolling(WINDOW, center=True).min()]
+
+    data['MACD_Highs'] = data['MACD'][data['MACD'] == data['MACD'].rolling(WINDOW, center=True).max()]
+    data['MACD_Lows'] = data['MACD'][data['MACD'] == data['MACD'].rolling(WINDOW, center=True).min()]
+
+    # Fill NaNs to avoid missing values in comparisons
+    data.fillna(method='ffill', inplace=True)
+
+    # Set divergence detection thresholds
+    RSI_THRESHOLD = 0.1  # 1% difference in RSI highs/lows
+    MACD_THRESHOLD = 0.01  # Small MACD difference threshold
+
+    # RSI Divergence Detection
+    data['DI'] = np.where(
+        (data['Local_Highs'].notna()) & (data['RSI_Highs'].notna()) &
+        ((data['RSI_Highs'].shift(1) - data['RSI_Highs']) > RSI_THRESHOLD), -1,  # Bearish Divergence
+        np.where(
+            (data['Local_Lows'].notna()) & (data['RSI_Lows'].notna()) &
+            ((data['RSI_Lows'] - data['RSI_Lows'].shift(1)) > RSI_THRESHOLD), 1,  # Bullish Divergence
+            0
+        )
+    )
+
+    # MACD Divergence Detection
+    data['DIV'] = np.where(
+        (data['Local_Highs'].notna()) & (data['MACD_Highs'].notna()) &
+        ((data['MACD_Highs'].shift(1) - data['MACD_Highs']) > MACD_THRESHOLD), -1,  # Bearish Divergence
+        np.where(
+            (data['Local_Lows'].notna()) & (data['MACD_Lows'].notna()) &
+            ((data['MACD_Lows'] - data['MACD_Lows'].shift(1)) > MACD_THRESHOLD), 1,  # Bullish Divergence
+            0
+        )
+    )
+
+    # Track current signals
+    current_signals = {
+        "Bullish Divergence": data.index[(data['DI'] == 1) | (data['DIV'] == 1)].tolist(),
+        "Bearish Divergence": data.index[(data['DI'] == -1) | (data['DIV'] == -1)].tolist(),
+        "RSI Crossover": []
+    }
+
+    # Check RSI crossovers (10 vs 24)
+    crossover_up = (data['RSI_10'] > data['RSI_24']) & (data['RSI_10'].shift(1) <= data['RSI_24'].shift(1))
+    crossover_down = (data['RSI_10'] < data['RSI_24']) & (data['RSI_10'].shift(1) >= data['RSI_24'].shift(1))
+    current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
+
+    # Visualization (3 Subplots: Price, RSI, MACD)
+    fig, ax = plt.subplots(3, 1, figsize=(12, 9), sharex=True, gridspec_kw={'height_ratios': [2, 1, 1]})
+    
+    # Configure axes to right side
+    for a in ax:
+        a.yaxis.tick_right()
+        a.yaxis.set_label_position("right")
+    
+    # Get current price and time
+    current_price = data['Close'].iloc[-1]
+    current_time = data.index[-1]
+    
+    # Plot Price
+    ax[0].plot(data.index, data['Close'], label=f'{symbol} Price', color='black')
+    
+    # Mark Bullish Divergences
+    ax[0].scatter(data.index[data['DI'] == 1], data['Close'][data['DI'] == 1], 
+                 color='green', label='RSI Bullish Divergence', marker='^', s=100, alpha=1)
+    ax[0].scatter(data.index[data['DIV'] == 1], data['Close'][data['DIV'] == 1], 
+                 color='lime', label='MACD Bullish Divergence', marker='^', s=100, alpha=1)
+    
+    # Mark Bearish Divergences
+    ax[0].scatter(data.index[data['DI'] == -1], data['Close'][data['DI'] == -1], 
+                 color='red', label='RSI Bearish Divergence', marker='v', s=100, alpha=1)
+    ax[0].scatter(data.index[data['DIV'] == -1], data['Close'][data['DIV'] == -1], 
+                 color='darkred', label='MACD Bearish Divergence', marker='v', s=100, alpha=1)
+    
+    # Mark current price
+    ax[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1)
+    ax[0].annotate(f'{current_price:.4f}\n{current_time.strftime("%H:%M:%S")}', 
+                  xy=(1, current_price), 
+                  xycoords=('axes fraction', 'data'),
+                  xytext=(5, 0), 
+                  textcoords='offset points',
+                  color='blue',
+                  va='center',
+                  bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+    
+    ax[0].set_ylabel('Price')
+    ax[0].set_title(f'{symbol} Price with Divergences ({interval})')
+    ax[0].legend(loc='upper left')
+    ax[0].grid(True, linestyle='--', alpha=0.7)
+    
+    # Plot RSI
+    ax[1].plot(data.index, data['RSI_10'], label='RSI 10', color='blue')
+    ax[1].plot(data.index, data['RSI_24'], label='RSI 24', color='orange')
+    
+    # Mark current RSI value
+    current_rsi = data['RSI_10'].iloc[-1]
+    ax[1].axhline(y=current_rsi, color='blue', linestyle='--', alpha=0.7, linewidth=1)
+    ax[1].annotate(f'{current_rsi:.2f}', 
+                  xy=(1, current_rsi), 
+                  xycoords=('axes fraction', 'data'),
+                  xytext=(5, 0), 
+                  textcoords='offset points',
+                  color='blue',
+                  va='center',
+                  bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+    
+    # Mark crossovers
+    rsi_up = data[crossover_up]
+    rsi_down = data[crossover_down]
+    
+    ax[1].scatter(rsi_up.index, rsi_up['RSI_10'], color='green', marker='^', s=80, label='Bullish Crossover')
+    ax[1].scatter(rsi_down.index, rsi_down['RSI_10'], color='red', marker='v', s=80, label='Bearish Crossover')
+    
+    ax[1].axhline(70, color='gray', linestyle='--', alpha=0.5)
+    ax[1].axhline(30, color='gray', linestyle='--', alpha=0.5)
+    ax[1].set_ylabel('RSI')
+    ax[1].set_title('RSI 10 vs RSI 24')
+    ax[1].legend(loc='upper left')
+    ax[1].grid(True, linestyle='--', alpha=0.7)
+    
+    # Plot MACD
+    ax[2].plot(data.index, data['MACD'], label='MACD', color='purple')
+    ax[2].plot(data.index, data['Signal_Line'], label='Signal Line', color='orange')
+    ax[2].bar(data.index, data['MACD_Hist'], label='MACD Histogram', color='gray', alpha=0.5)
+    ax[2].set_ylabel('MACD')
+    ax[2].set_title('MACD Indicator')
+    ax[2].legend(loc='upper left')
+    ax[2].grid(True, linestyle='--', alpha=0.7)
+    
+    plt.tight_layout()
+    return fig, current_signals
+
+# Strategy 2: Wide Swing 2 (updated version)
+def wide_swing_2(data):
+    if data.empty:
+        return plt.figure(), {}
+    
+    data = data.copy()
+    
+    # Compute RSI
+    def compute_rsi(series, period=14):
+        delta = series.diff()
+        gain = pd.Series(np.where(delta > 0, delta, 0), index=series.index).rolling(window=period).mean()
+        loss = pd.Series(np.where(delta < 0, -delta, 0), index=series.index).rolling(window=period).mean()
+        rs = gain / loss
+        return 100 - (100 / (1 + rs))
+
+    # Compute MACD
+    def compute_macd(data, short=12, long=26, signal=9):
+        macd_line = data['Close'].ewm(span=short, adjust=False).mean() - data['Close'].ewm(span=long, adjust=False).mean()
+        signal_line = macd_line.ewm(span=signal, adjust=False).mean()
+        return macd_line, signal_line
+
+    # Compute KDJ
+    def compute_kdj(data, window=14, smooth=3):
+        low_min = data['Low'].rolling(window=window).min()
+        high_max = data['High'].rolling(window=window).max()
+        k = 100 * ((data['Close'] - low_min) / (high_max - low_min))
+        d = k.rolling(window=smooth).mean()
+        j = 3 * k - 2 * d
+        return k, d, j
+
+    # Find Local Extrema
+    def find_extrema(series, order=70):
+        maxima = argrelextrema(series.values, np.greater, order=order)[0]
+        minima = argrelextrema(series.values, np.less, order=order)[0]
+        return maxima, minima
+
+    # Apply Calculations
     data['RSI_14'] = compute_rsi(data['Close'])
-    data['RSI_10'] = compute_rsi(data['Close'], period=10)
-    data['RSI_22'] = compute_rsi(data['Close'], period=22)
+    data['RSI_10'] = compute_rsi(data['Close'], period=10)  # RSI 10
+    data['RSI_22'] = compute_rsi(data['Close'], period=22)  # RSI 22
     data['MACD'], data['Signal'] = compute_macd(data)
     data['K'], data['D'], data['J'] = compute_kdj(data)
 
-    maxima, minima = find_extrema(data['Close'], order=60)
+    # Find Strong Extrema
+    maxima, minima = find_extrema(data['Close'], order=20)
 
     # Compute Divergences
     data['DIV_RSI'] = np.where(
@@ -394,185 +593,66 @@ def wide_swing_1(data):
         "RSI Crossover": []
     }
 
-    # Check RSI crossovers
-    crossover_up = (data['RSI_10'] > data['RSI_22']) & (data['RSI_10'].shift(1) <= data['RSI_22'].shift(1))
-    crossover_down = (data['RSI_10'] < data['RSI_22']) & (data['RSI_10'].shift(1) >= data['RSI_22'].shift(1))
-    current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
-
-    # Plotting
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [2, 1]})
-    
-    # Configure axes to right side
-    ax1.yaxis.tick_right()
-    ax2.yaxis.tick_right()
-    ax1.yaxis.set_label_position("right")
-    ax2.yaxis.set_label_position("right")
-    
-    # Get current price and time
-    current_price = data['Close'].iloc[-1]
-    current_time = data.index[-1]
-    
-    # Price plot with dynamic coloring
-    divergence_state = 0
-    divergence_price = None
+    # Track divergence state and update price line color
+    divergence_state = 0  # 0: none, 1: bullish, -1: bearish
+    divergence_price = None  # Price level where divergence was spotted
     price_colors = []
-    
-    for i in range(len(data)):
-        if data['Final_Divergence'].iloc[i] == 1:
-            divergence_state = 1
-            divergence_price = data['Close'].iloc[i]
-        elif data['Final_Divergence'].iloc[i] == -1:
-            divergence_state = -1
-            divergence_price = data['Close'].iloc[i]
-        
-        if divergence_state == 1:
-            if data['Close'].iloc[i] < divergence_price:
-                color = 'black'
-                divergence_state = 0
-            else:
-                color = 'green'
-        elif divergence_state == -1:
-            if data['Close'].iloc[i] > divergence_price:
-                color = 'black'
-                divergence_state = 0
-            else:
-                color = 'red'
-        else:
-            color = 'black'
-        
-        price_colors.append(color)
-    
-    for i in range(1, len(data)):
-        ax1.plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1], color=price_colors[i])
 
-    # Mark current price with dashed line
-    ax1.axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1)
-    ax1.annotate(f'{current_price:.4f}\n{current_time.strftime("%H:%M:%S")}', 
-                xy=(1, current_price), 
-                xycoords=('axes fraction', 'data'),
-                xytext=(5, 0), 
-                textcoords='offset points',
-                color='blue',
-                va='center',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
-    
-    # Mark divergences
-    bull_div = data[data['Final_Divergence'] == 1]
-    bear_div = data[data['Final_Divergence'] == -1]
-    
-    ax1.scatter(bull_div.index, bull_div['Close'], color='green', marker='^', s=100, label='Bullish Divergence')
-    ax1.scatter(bear_div.index, bear_div['Close'], color='red', marker='v', s=100, label='Bearish Divergence')
-    
-    ax1.set_title(f'{symbol} Price with Reversal Traps ({interval})', fontsize=12)
-    ax1.legend(loc='upper left')
-    ax1.grid(True, linestyle='--', alpha=0.7)
-    
-    # RSI plot with dynamic coloring
-    rsi_crossover_state = 0
-    rsi_colors = []
-    
     for i in range(len(data)):
-        if data['RSI_10'].iloc[i] > data['RSI_22'].iloc[i] and (i == 0 or data['RSI_10'].iloc[i-1] <= data['RSI_22'].iloc[i-1]):
+        # Check for new divergence signals
+        if data['Final_Divergence'].iloc[i] == 1:  # Bullish divergence
+            divergence_state = 1
+            divergence_price = data['Close'].iloc[i]  # Set divergence price level
+        elif data['Final_Divergence'].iloc[i] == -1:  # Bearish divergence
+            divergence_state = -1
+            divergence_price = data['Close'].iloc[i]  # Set divergence price level
+
+        # Update color based on divergence state and price level
+        if divergence_state == 1:  # Bullish divergence
+            if data['Close'].iloc[i] < divergence_price:  # Price fell below divergence level
+                price_colors.append('black')
+                divergence_state = 0  # Reset divergence state
+                divergence_price = None
+            else:
+                price_colors.append('green')
+        elif divergence_state == -1:  # Bearish divergence
+            if data['Close'].iloc[i] > divergence_price:  # Price rose above divergence level
+                price_colors.append('black')
+                divergence_state = 0  # Reset divergence state
+                divergence_price = None
+            else:
+                price_colors.append('red')
+        else:
+            price_colors.append('black')
+
+    # Track RSI crossover state and update RSI 10 line color
+    rsi_crossover_state = 0  # 0: none, 1: RSI 10 > RSI 22, -1: RSI 10 < RSI 22
+    rsi_10_colors = []  # Colors for RSI 10 line
+
+    for i in range(len(data)):
+        # Check for RSI crossovers
+        if data['RSI_10'].iloc[i] > data['RSI_22'].iloc[i] and (i == 0 or data['RSI_10'].iloc[i-1] <= data['RSI_22'].iloc[i-1]):  # RSI 10 crosses above RSI 22
             rsi_crossover_state = 1
-        elif data['RSI_10'].iloc[i] < data['RSI_22'].iloc[i] and (i == 0 or data['RSI_10'].iloc[i-1] >= data['RSI_22'].iloc[i-1]):
+            current_signals["RSI Crossover"].append(data.index[i])
+        elif data['RSI_10'].iloc[i] < data['RSI_22'].iloc[i] and (i == 0 or data['RSI_10'].iloc[i-1] >= data['RSI_22'].iloc[i-1]):  # RSI 10 crosses below RSI 22
             rsi_crossover_state = -1
-        
-        if rsi_crossover_state == 1:
-            if price_colors[i] == 'green':
-                rsi_colors.append('green')
+            current_signals["RSI Crossover"].append(data.index[i])
+
+        # Update RSI 10 line color
+        if rsi_crossover_state == 1:  # RSI 10 > RSI 22
+            if price_colors[i] == 'green':  # Price line is bullish
+                rsi_10_colors.append('green')
             else:
-                rsi_colors.append('gray')
-        elif rsi_crossover_state == -1:
-            if price_colors[i] == 'red':
-                rsi_colors.append('green')
+                rsi_10_colors.append('gray')
+        elif rsi_crossover_state == -1:  # RSI 10 < RSI 22
+            if price_colors[i] == 'red':  # Price line is bearish
+                rsi_10_colors.append('green')  # Turn green when RSI 10 < RSI 22 and price is bearish
             else:
-                rsi_colors.append('gray')
+                rsi_10_colors.append('gray')
         else:
-            rsi_colors.append('gray')
-    
-    for i in range(1, len(data)):
-        ax2.plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1], color=rsi_colors[i])
-    
-    ax2.plot(data.index, data['RSI_22'], color='red', label='RSI 22')
-    
-    # Mark current RSI value
-    current_rsi = data['RSI_10'].iloc[-1]
-    ax2.axhline(y=current_rsi, color='blue', linestyle='--', alpha=0.7, linewidth=1)
-    ax2.annotate(f'{current_rsi:.2f}', 
-                xy=(1, current_rsi), 
-                xycoords=('axes fraction', 'data'),
-                xytext=(5, 0), 
-                textcoords='offset points',
-                color='blue',
-                va='center',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
-    
-    # Mark crossovers
-    rsi_up = data[crossover_up]
-    rsi_down = data[crossover_down]
-    
-    ax2.scatter(rsi_up.index, rsi_up['RSI_10'], color='blue', marker='^', s=80)
-    ax2.scatter(rsi_down.index, rsi_down['RSI_10'], color='orange', marker='v', s=80)
-    
-    ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
-    ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('Market Twist', fontsize=12)
-    ax2.legend(loc='upper left')
-    ax2.grid(True, linestyle='--', alpha=0.7)
-    
-    plt.tight_layout()
-    return fig, current_signals
+            rsi_10_colors.append('gray')
 
-# Strategy 2: Wide Swing 2
-def wide_swing_2(data):
-    if data.empty:
-        return plt.figure(), {}
-    
-    data = data.copy()
-    data['RSI_14'] = compute_rsi(data['Close'])
-    data['RSI_7'] = compute_rsi(data['Close'], period=7)
-    data['RSI_21'] = compute_rsi(data['Close'], period=21)
-    data['MACD'], data['Signal'] = compute_macd(data)
-    data['K'], data['D'], data['J'] = compute_kdj(data)
-
-    maxima, minima = find_extrema(data['Close'], order=60)
-    
-    # Compute Divergences
-    data['DIV_RSI'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['RSI_14'].diff() > -1) & (data['RSI_14'] > 50), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['RSI_14'].diff() < 1) & (data['RSI_14'] < 50), 1, 0)
-    )
-
-    data['DIV_MACD'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['MACD'].diff() > -0.1) & (data['MACD'] > 0), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['MACD'].diff() < 0.1) & (data['MACD'] < 0), 1, 0)
-    )
-
-    data['DIV_KDJ'] = np.where(
-        (data.index.isin(data.index[maxima])) & (data['J'].diff() > -30) & (data['J'] > 50), -1,
-        np.where((data.index.isin(data.index[minima])) & (data['J'].diff() < 30) & (data['J'] < 50), 1, 0)
-    )
-
-    # Strong Divergences Only (Require at least 2 Confirmations)
-    data["Final_Divergence"] = (
-        (data['DIV_RSI'] + data['DIV_MACD'] + data['DIV_KDJ']) >= 2
-    ).astype(int) - (
-        (data['DIV_RSI'] + data['DIV_MACD'] + data['DIV_KDJ']) <= -2
-    ).astype(int)
-    
-    # Track signals
-    current_signals = {
-        "Bullish Divergence": data.index[data['Final_Divergence'] == 1].tolist(),
-        "Bearish Divergence": data.index[data['Final_Divergence'] == -1].tolist(),
-        "RSI Crossover": []
-    }
-    
-    # Check RSI crossovers
-    crossover_up = (data['RSI_7'] > data['RSI_21']) & (data['RSI_7'].shift(1) <= data['RSI_21'].shift(1))
-    crossover_down = (data['RSI_7'] < data['RSI_21']) & (data['RSI_7'].shift(1) >= data['RSI_21'].shift(1))
-    current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
-    
-    # Plotting
+    # Plot results
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [2, 1]})
     
     # Configure axes to right side
@@ -586,38 +666,9 @@ def wide_swing_2(data):
     current_time = data.index[-1]
     
     # Price plot with dynamic coloring
-    divergence_state = 0
-    divergence_price = None
-    price_colors = []
-    
-    for i in range(len(data)):
-        if data['Final_Divergence'].iloc[i] == 1:
-            divergence_state = 1
-            divergence_price = data['Close'].iloc[i]
-        elif data['Final_Divergence'].iloc[i] == -1:
-            divergence_state = -1
-            divergence_price = data['Close'].iloc[i]
-        
-        if divergence_state == 1:
-            if data['Close'].iloc[i] < divergence_price:
-                color = 'black'
-                divergence_state = 0
-            else:
-                color = 'green'
-        elif divergence_state == -1:
-            if data['Close'].iloc[i] > divergence_price:
-                color = 'black'
-                divergence_state = 0
-            else:
-                color = 'red'
-        else:
-            color = 'black'
-        
-        price_colors.append(color)
-    
     for i in range(1, len(data)):
         ax1.plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1], color=price_colors[i])
-    
+
     # Mark current price with dashed line and annotation
     ax1.axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1)
     ax1.annotate(f'{current_price:.4f} ({current_time.strftime("%H:%M")})', 
@@ -629,23 +680,24 @@ def wide_swing_2(data):
                 va='center',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
     
-    # Mark divergences
-    bull_div = data[data['Final_Divergence'] == 1]
-    bear_div = data[data['Final_Divergence'] == -1]
-    
-    ax1.scatter(bull_div.index, bull_div['Close'], color='green', marker='^', s=100, label='Bullish Divergence')
-    ax1.scatter(bear_div.index, bear_div['Close'], color='red', marker='v', s=100, label='Bearish Divergence')
-    
-    ax1.set_title(f'{symbol} Price with Divergences ({interval})', fontsize=12)
+    # Divergence Markers
+    ax1.scatter(data.index[data['Final_Divergence'] == 1], data['Close'][data['Final_Divergence'] == 1],
+                color='green', marker='^', label='Bullish Divergence', s=100)
+    ax1.scatter(data.index[data['Final_Divergence'] == -1], data['Close'][data['Final_Divergence'] == -1],
+                color='red', marker='v', label='Bearish Divergence', s=100)
+
+    ax1.set_ylabel('Price')
+    ax1.set_title(f'{symbol} Price with Strong Divergences ({interval})', fontsize=12)
     ax1.legend(loc='upper left')
     ax1.grid(True, linestyle='--', alpha=0.7)
     
     # RSI plot
-    ax2.plot(data.index, data['RSI_7'], color='blue', label='RSI 7')
-    ax2.plot(data.index, data['RSI_21'], color='orange', label='RSI 21')
+    for i in range(1, len(data)):
+        ax2.plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1], color=rsi_10_colors[i])
+    ax2.plot(data.index, data['RSI_22'], color='red', label='RSI 22')
     
     # Mark current RSI value with dashed line
-    current_rsi = data['RSI_7'].iloc[-1]
+    current_rsi = data['RSI_10'].iloc[-1]
     ax2.axhline(y=current_rsi, color='blue', linestyle='--', alpha=0.7, linewidth=1)
     ax2.annotate(f'{current_rsi:.2f}', 
                 xy=(1, current_rsi), 
@@ -656,16 +708,18 @@ def wide_swing_2(data):
                 va='center',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
     
-    # Mark crossovers
-    rsi_up = data[crossover_up]
-    rsi_down = data[crossover_down]
+    # Highlight RSI Crossovers
+    crossover_up = (data['RSI_10'] > data['RSI_22']) & (data['RSI_10'].shift(1) <= data['RSI_22'].shift(1))
+    crossover_down = (data['RSI_10'] < data['RSI_22']) & (data['RSI_10'].shift(1) >= data['RSI_22'].shift(1))
     
-    ax2.scatter(rsi_up.index, rsi_up['RSI_7'], color='green', marker='^', s=80, label='Bullish Crossover')
-    ax2.scatter(rsi_down.index, rsi_down['RSI_7'], color='red', marker='v', s=80, label='Bearish Crossover')
+    ax2.scatter(data.index[crossover_up], data['RSI_10'][crossover_up], 
+               color='blue', marker='^', s=80, label='Bullish Crossover')
+    ax2.scatter(data.index[crossover_down], data['RSI_10'][crossover_down], 
+               color='orange', marker='v', s=80, label='Bearish Crossover')
     
-    ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
-    ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('RSI 7 vs RSI 21', fontsize=12)
+    ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)  # Overbought level
+    ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)  # Oversold level
+    ax2.set_title('RSI 10 vs RSI 22 Crossover', fontsize=12)
     ax2.legend(loc='upper left')
     ax2.grid(True, linestyle='--', alpha=0.7)
     
@@ -1043,7 +1097,236 @@ def short_swing_2(data):
     plt.tight_layout()
     return fig, current_signals
 
+
+
+# Strategy 5: Multi-Timeframe Divergence
+def multi_timeframe_divergence(data):
+    if data.empty:
+        return plt.figure(), {}
+    
+    data = data.copy()
+    
+    # Enhanced extrema finding function
+    def find_extrema(series, order_values):
+        maxima, minima = [], []
+        for order in order_values:
+            maxima.extend(argrelextrema(series.values, np.greater, order=order)[0])
+            minima.extend(argrelextrema(series.values, np.less, order=order)[0])
+        return sorted(set(maxima)), sorted(set(minima))
+
+    # Independent configurations for RSI, MACD, and KDJ
+    rsi_configs = [{"period": 10, "orders": [3, 5]}, {"period": 14, "orders": [5, 7]}, {"period": 21, "orders": [7, 10]}]
+    macd_configs = [{"short": 12, "long": 26, "signal": 9, "orders": [3, 5]}, {"short": 9, "long": 21, "signal": 7, "orders": [5, 7]}]
+    kdj_configs = [{"window": 9, "smooth": 3, "orders": [3, 5]}, {"window": 14, "smooth": 3, "orders": [5, 7]}]
+
+    # Compute RSI-based divergence
+    for cfg in rsi_configs:
+        period, orders = cfg["period"], cfg["orders"]
+        data[f'RSI_{period}'] = compute_rsi(data['Close'], period)
+        maxima, minima = find_extrema(data['Close'], orders)
+
+        threshold = np.percentile(data[f'RSI_{period}'].diff().dropna(), 20)  # Reduced threshold sensitivity
+
+        data[f'DIV_RSI_{period}'] = np.where(
+            data.index.isin(data.index[maxima]) & (data[f'RSI_{period}'].diff() < -threshold), -1,
+            np.where(
+                data.index.isin(data.index[minima]) & (data[f'RSI_{period}'].diff() > threshold), 1,
+                0
+            )
+        )
+
+    # Compute MACD-based divergence
+    for cfg in macd_configs:
+        short, long, signal, orders = cfg.values()
+        data[f'MACD_{short}_{long}'], data[f'Signal_{short}_{long}'] = compute_macd(data, short, long, signal)
+        maxima, minima = find_extrema(data['Close'], orders)
+
+        threshold = np.percentile(data[f'MACD_{short}_{long}'].diff().dropna(), 20)  # Reduced threshold sensitivity
+
+        data[f'DIV_MACD_{short}_{long}'] = np.where(
+            data.index.isin(data.index[maxima]) & (data[f'MACD_{short}_{long}'].diff() < -threshold), -1,
+            np.where(
+                data.index.isin(data.index[minima]) & (data[f'MACD_{short}_{long}'].diff() > threshold), 1,
+                0
+            )
+        )
+
+    # Compute KDJ-based divergence
+    for cfg in kdj_configs:
+        window, smooth, orders = cfg.values()
+        data[f'K_{window}'], data[f'D_{window}'], data[f'J_{window}'] = compute_kdj(data, window, smooth)
+        maxima, minima = find_extrema(data['Close'], orders)
+
+        threshold = np.percentile(data[f'J_{window}'].diff().dropna(), 20)  # Reduced threshold sensitivity
+
+        data[f'DIV_KDJ_{window}'] = np.where(
+            data.index.isin(data.index[maxima]) & (data[f'J_{window}'].diff() < -threshold), -1,
+            np.where(
+                data.index.isin(data.index[minima]) & (data[f'J_{window}'].diff() > threshold), 1,
+                0
+            )
+        )
+
+    # Track current signals
+    current_signals = {
+        "Bullish Divergence": [],
+        "Bearish Divergence": [],
+        "RSI Crossover": []
+    }
+
+    # Check all divergence types
+    for cfg in rsi_configs:
+        period = cfg["period"]
+        current_signals["Bullish Divergence"].extend(data.index[data[f'DIV_RSI_{period}'] == 1].tolist())
+        current_signals["Bearish Divergence"].extend(data.index[data[f'DIV_RSI_{period}'] == -1].tolist())
+
+    for cfg in macd_configs:
+        short, long = cfg["short"], cfg["long"]
+        current_signals["Bullish Divergence"].extend(data.index[data[f'DIV_MACD_{short}_{long}'] == 1].tolist())
+        current_signals["Bearish Divergence"].extend(data.index[data[f'DIV_MACD_{short}_{long}'] == -1].tolist())
+
+    for cfg in kdj_configs:
+        window = cfg["window"]
+        current_signals["Bullish Divergence"].extend(data.index[data[f'DIV_KDJ_{window}'] == 1].tolist())
+        current_signals["Bearish Divergence"].extend(data.index[data[f'DIV_KDJ_{window}'] == -1].tolist())
+
+    # Remove duplicates
+    current_signals["Bullish Divergence"] = sorted(set(current_signals["Bullish Divergence"]))
+    current_signals["Bearish Divergence"] = sorted(set(current_signals["Bearish Divergence"]))
+    
+    # Check RSI crossovers
+    data['RSI_10'] = compute_rsi(data['Close'], period=10)
+    data['RSI_22'] = compute_rsi(data['Close'], period=22)
+    crossover_up = (data['RSI_10'] > data['RSI_22']) & (data['RSI_10'].shift(1) <= data['RSI_22'].shift(1))
+    crossover_down = (data['RSI_10'] < data['RSI_22']) & (data['RSI_10'].shift(1) >= data['RSI_22'].shift(1))
+    current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
+
+    # Track divergence state and update price line color
+    divergence_state = 0  # 0: none, 1: bullish, -1: bearish
+    divergence_price = None  # Price level where divergence was spotted
+    price_line_colors = []
+
+    for i in range(len(data)):
+        # Check for new divergence signals
+        if any(data[f'DIV_RSI_{cfg["period"]}'].iloc[i] == 1 for cfg in rsi_configs) or \
+           any(data[f'DIV_MACD_{cfg["short"]}_{cfg["long"]}'].iloc[i] == 1 for cfg in macd_configs) or \
+           any(data[f'DIV_KDJ_{cfg["window"]}'].iloc[i] == 1 for cfg in kdj_configs):  # Bullish divergence
+            divergence_state = 1
+            divergence_price = data['Close'].iloc[i]  # Set divergence price level
+        elif any(data[f'DIV_RSI_{cfg["period"]}'].iloc[i] == -1 for cfg in rsi_configs) or \
+             any(data[f'DIV_MACD_{cfg["short"]}_{cfg["long"]}'].iloc[i] == -1 for cfg in macd_configs) or \
+             any(data[f'DIV_KDJ_{cfg["window"]}'].iloc[i] == -1 for cfg in kdj_configs):  # Bearish divergence
+            divergence_state = -1
+            divergence_price = data['Close'].iloc[i]  # Set divergence price level
+
+        # Update color based on divergence state and price level
+        if divergence_state == 1:  # Bullish divergence
+            if data['Close'].iloc[i] < divergence_price:  # Price fell below divergence level
+                price_line_colors.append('black')
+                divergence_state = 0  # Reset divergence state
+                divergence_price = None
+            else:
+                price_line_colors.append('green')
+        elif divergence_state == -1:  # Bearish divergence
+            if data['Close'].iloc[i] > divergence_price:  # Price rose above divergence level
+                price_line_colors.append('black')
+                divergence_state = 0  # Reset divergence state
+                divergence_price = None
+            else:
+                price_line_colors.append('red')
+        else:
+            price_line_colors.append('black')
+
+    # Plot results
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [2, 1]})
+    
+    # Configure axes to right side
+    ax1.yaxis.tick_right()
+    ax2.yaxis.tick_right()
+    ax1.yaxis.set_label_position("right")
+    ax2.yaxis.set_label_position("right")
+    
+    # Get current price and time
+    current_price = data['Close'].iloc[-1]
+    current_time = data.index[-1]
+    
+    # Price plot with dynamic coloring
+    for i in range(1, len(data)):
+        ax1.plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1], color=price_line_colors[i])
+    
+    # Mark current price with dashed line and annotation
+    ax1.axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1)
+    ax1.annotate(f'{current_price:.4f} ({current_time.strftime("%H:%M")})', 
+                xy=(1, current_price), 
+                xycoords=('axes fraction', 'data'),
+                xytext=(5, 0), 
+                textcoords='offset points',
+                color='blue',
+                va='center',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+    
+    # Divergence Markers
+    for cfg in rsi_configs:
+        period = cfg["period"]
+        ax1.scatter(data.index[data[f'DIV_RSI_{period}'] == 1], data['Close'][data[f'DIV_RSI_{period}'] == 1], 
+                   color='green', marker='^', alpha=0.5, s=80, label=f'RSI {period} Bull' if period == 10 else "")
+        ax1.scatter(data.index[data[f'DIV_RSI_{period}'] == -1], data['Close'][data[f'DIV_RSI_{period}'] == -1], 
+                   color='red', marker='v', alpha=0.5, s=80, label=f'RSI {period} Bear' if period == 10 else "")
+
+    for cfg in macd_configs:
+        short, long = cfg["short"], cfg["long"]
+        ax1.scatter(data.index[data[f'DIV_MACD_{short}_{long}'] == 1], data['Close'][data[f'DIV_MACD_{short}_{long}'] == 1], 
+                   color='lime', marker='^', alpha=0.5, s=80, label=f'MACD {short}-{long} Bull' if short == 12 else "")
+        ax1.scatter(data.index[data[f'DIV_MACD_{short}_{long}'] == -1], data['Close'][data[f'DIV_MACD_{short}_{long}'] == -1], 
+                   color='darkred', marker='v', alpha=0.5, s=80, label=f'MACD {short}-{long} Bear' if short == 12 else "")
+
+    for cfg in kdj_configs:
+        window = cfg["window"]
+        ax1.scatter(data.index[data[f'DIV_KDJ_{window}'] == 1], data['Close'][data[f'DIV_KDJ_{window}'] == 1], 
+                   color='blue', marker='^', alpha=0.5, s=80, label=f'KDJ {window} Bull' if window == 9 else "")
+        ax1.scatter(data.index[data[f'DIV_KDJ_{window}'] == -1], data['Close'][data[f'DIV_KDJ_{window}'] == -1], 
+                   color='purple', marker='v', alpha=0.5, s=80, label=f'KDJ {window} Bear' if window == 9 else "")
+
+    ax1.set_ylabel('Price')
+    ax1.set_title(f'{symbol} Price with Multi-Timeframe Divergences ({interval})', fontsize=12)
+    ax1.grid(True, linestyle='--', alpha=0.7)
+    ax1.legend(loc='upper left')
+    
+    # RSI plot
+    ax2.plot(data.index, data['RSI_10'], color='green', label='RSI 10')
+    ax2.plot(data.index, data['RSI_22'], color='red', label='RSI 22')
+    
+    # Mark current RSI value with dashed line
+    current_rsi = data['RSI_10'].iloc[-1]
+    ax2.axhline(y=current_rsi, color='blue', linestyle='--', alpha=0.7, linewidth=1)
+    ax2.annotate(f'{current_rsi:.2f}', 
+                xy=(1, current_rsi), 
+                xycoords=('axes fraction', 'data'),
+                xytext=(5, 0), 
+                textcoords='offset points',
+                color='blue',
+                va='center',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+    
+    # Highlight RSI Crossovers
+    ax2.scatter(data.index[crossover_up], data['RSI_10'][crossover_up], 
+               color='blue', marker='^', s=80, label='Bullish Crossover')
+    ax2.scatter(data.index[crossover_down], data['RSI_10'][crossover_down], 
+               color='orange', marker='v', s=80, label='Bearish Crossover')
+    
+    ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)  # Overbought level
+    ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)  # Oversold level
+    ax2.set_title('RSI 10 vs RSI 22 Crossover', fontsize=12)
+    ax2.legend(loc='upper left')
+    ax2.grid(True, linestyle='--', alpha=0.7)
+    
+    plt.tight_layout()
+    return fig, current_signals
+
+
 # Main app display
+
+# Update the main_display function to include the new strategy
 def main_display():
     st.header(f"{symbol} ({interval})")
     
@@ -1085,6 +1368,8 @@ def main_display():
         fig, current_signals = short_swing_1(data)
     elif page == "Short Swing 2":
         fig, current_signals = short_swing_2(data)
+    elif page == "Multi-Timeframe Divergence":
+        fig, current_signals = multi_timeframe_divergence(data)
     
     # Display the chart with WebP compression
     img_buf = compress_image(fig)
@@ -1120,6 +1405,7 @@ def main_display():
                 cols[1].warning(alert['type'])
                 
             cols[2].write(f"{alert['price']:.4f}")
+
 
 # Run the app
 placeholder = st.empty()
