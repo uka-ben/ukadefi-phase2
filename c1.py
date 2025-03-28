@@ -6,20 +6,13 @@ import requests
 from scipy.signal import argrelextrema
 import time
 from datetime import datetime
-import pygame
-from io import BytesIO
-import base64
 import brotli
 import threading
 import queue
 import json
 from PIL import Image
 import io
- 
-# Initialize pygame mixer for sound alerts
-pygame.mixer.init()
-
-
+import base64
 
 # Apply custom CSS for enhanced background and lighter sidebar color
 page_bg_img = """
@@ -60,8 +53,6 @@ body {
 .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
     color: #2c3e50;
 }
-
-}
 .stDataFrame {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -72,13 +63,6 @@ body {
 </style>
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
-
-
-
-
-
-
-
 
 # Compression helper functions
 def compress_data(data):
@@ -93,19 +77,30 @@ def decompress_data(compressed_data):
 
 def compress_image(fig, quality=85):
     """Convert matplotlib figure to optimized WebP"""
-    # First save as PNG
     png_buf = io.BytesIO()
     fig.savefig(png_buf, format='png', dpi=80)
     png_buf.seek(0)
-    
-    # Then convert to WebP using Pillow
-    from PIL import Image
     img = Image.open(png_buf)
     webp_buf = io.BytesIO()
     img.save(webp_buf, format='webp', quality=quality)
     webp_buf.seek(0)
-    
     return webp_buf
+
+# Sound alert function using hosted files
+def play_alert_sound(alert_type="neutral"):
+    """Play alert sound using HTML5 audio"""
+    sound_url = {
+        "bullish": "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav",
+        "bearish": "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav",
+        "neutral": "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav"
+    }.get(alert_type.lower(), "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav")
+    
+    audio_html = f"""
+    <audio autoplay>
+        <source src="{sound_url}?v={time.time()}" type="audio/wav">
+    </audio>
+    """
+    st.components.v1.html(audio_html, height=0)
 
 # SSE (Server-Sent Events) implementation
 class SSEClient:
@@ -159,19 +154,19 @@ class SSEClient:
         except queue.Empty:
             return None
 
+# App header and info
 st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **benjaminukaimo@gmail.com**") 
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
-st.title("Phase 2-financial modelling")
+st.subheader("TIMETON 0.0.2 -for financial market modelling")
 
-st.markdown("**UKADEFI** is a powerful system with several phases. ukadefi can offer solution to problems involving **time series, fraud detection,robotics,decisioning, robotics**, etc.")
-st.markdown("**Here UKADEFI** system applied to financial trading.")
+st.markdown("**TIMETON** is a powerful system with several phases. ukadefi can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
+st.markdown("This app presents **TIMETON** being applied to detect and forecast price reversal points in financial markets.")
 
+# Input controls
 symbol = st.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
 interval = st.selectbox("Interval", ["1min", "5min", "30min", "1h", "4h", "1day", "1week", "1month"])
-
-
 
 # Sidebar controls
 st.sidebar.title("Controls")
@@ -182,18 +177,12 @@ page = st.radio(
 )
 
 # API Configuration
-
-#api_key = st.sidebar.text_input("TwelveData API Key", "cef197ce3e054ee69d6c795401b229cd")
 api_key = "cef197ce3e054ee69d6c795401b229cd"
-
-#symbol = st.sidebar.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
-#interval = st.sidebar.selectbox("Interval", ["1min", "5min", "30min", "1h", "4h", "1day", "1week", "1month"])
 
 # Live update controls
 live_update = st.sidebar.checkbox("Live Chat Update", True)
 lookback = st.sidebar.slider("Chat Lookback Period (bars)", 50, 1000, 300)
 update_interval = st.sidebar.slider("Live Update Interval (seconds)", 15, 300, 30)
-
 
 # Alert configuration
 st.sidebar.title("Alert Settings")
@@ -220,7 +209,7 @@ if 'sse_client' not in st.session_state:
 if 'last_data' not in st.session_state:
     st.session_state.last_data = None
 
-# Helper functions
+# Technical indicator functions
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(window=period).mean()
@@ -253,6 +242,7 @@ def find_extrema_multi(series, order_values):
         minima.extend(argrelextrema(series.values, np.less, order=order)[0])
     return sorted(set(maxima)), sorted(set(minima))
 
+# Data loading functions
 @st.cache_data(ttl=60, show_spinner="Fetching market data...")
 def load_initial_data(symbol, interval, lookback, api_key):
     """Load initial data from TwelveData API with compression"""
@@ -344,23 +334,10 @@ def trigger_alert(alert_type, price, timestamp):
         st.toast(f"⚠️ RSI CROSSOVER at {price:.4f}", icon="🔔")
         st.sidebar.warning(f"RSI crossover at {price:.4f}")
     
-    # Sound alert (only load if needed)
+    # Sound alert
     if alert_sound:
-        try:
-            sound_file = "alert1.wav"
-            if alert_type == "Bullish Divergence":
-                sound_file = "alert1.wav"
-            elif alert_type == "Bearish Divergence":
-                sound_file = "alert1.wav"
-            elif alert_type == "RSI Crossover":
-                sound_file = "alert1.wav"
-                
-            if sound_file:
-                sound = pygame.mixer.Sound(sound_file)
-                sound.set_volume(alert_volume)
-                sound.play()
-        except Exception as e:
-            st.warning(f"Couldn't play sound: {str(e)}")
+        sound_type = "bullish" if "Bullish" in alert_type else "bearish" if "Bearish" in alert_type else "neutral"
+        play_alert_sound(sound_type)
     
     # Add to alert history
     st.session_state.alert_history.append({
@@ -372,6 +349,7 @@ def trigger_alert(alert_type, price, timestamp):
     
     # Keep only last 50 alerts
     st.session_state.alert_history = st.session_state.alert_history[-50:]
+
 # Strategy 1: Wide Swing 1
 def wide_swing_1(data):
     if data.empty:
@@ -550,11 +528,10 @@ def wide_swing_2(data):
     if data.empty:
         return plt.figure(), {}
     
-   
     data = data.copy()
     data['RSI_14'] = compute_rsi(data['Close'])
-    data['RSI_10'] = compute_rsi(data['Close'], period=10)
-    data['RSI_22'] = compute_rsi(data['Close'], period=22)
+    data['RSI_7'] = compute_rsi(data['Close'], period=7)
+    data['RSI_21'] = compute_rsi(data['Close'], period=21)
     data['MACD'], data['Signal'] = compute_macd(data)
     data['K'], data['D'], data['J'] = compute_kdj(data)
 
@@ -703,8 +680,8 @@ def short_swing_1(data):
     data = data.copy()
     # Apply Calculations
     data['RSI_14'] = compute_rsi(data['Close'])
-    data['RSI_10'] = compute_rsi(data['Close'], period=10)  # RSI 10
-    data['RSI_22'] = compute_rsi(data['Close'], period=22)  # RSI 22
+    data['RSI_5'] = compute_rsi(data['Close'], period=5)
+    data['RSI_20'] = compute_rsi(data['Close'], period=20)
     data['MACD'], data['Signal'] = compute_macd(data)
     data['K'], data['D'], data['J'] = compute_kdj(data)
 
@@ -1068,10 +1045,6 @@ def short_swing_2(data):
 
 # Main app display
 def main_display():
-
-    #st.markdown('<div class="background">', unsafe_allow_html=True)
-
-
     st.header(f"{symbol} ({interval})")
     
     # Initialize SSE client if needed
@@ -1140,13 +1113,15 @@ def main_display():
             cols[0].write(alert['timestamp'].strftime('%H:%M:%S'))
             
             if alert['type'] == "Bullish Divergence":
-                cols[1].markdown(f"<span class='positive'>{alert['type']}</span>", unsafe_allow_html=True)
+                cols[1].success(alert['type'])
+            elif alert['type'] == "Bearish Divergence":
+                cols[1].error(alert['type'])
             else:
-                cols[1].markdown(f"<span class='negative'>{alert['type']}</span>", unsafe_allow_html=True)
+                cols[1].warning(alert['type'])
                 
             cols[2].write(f"{alert['price']:.4f}")
 
-# Run the app with optimized refresh
+# Run the app
 placeholder = st.empty()
 
 while True:
@@ -1156,7 +1131,7 @@ while True:
     if not live_update:
         st.stop()
     
-    time.sleep(max(update_interval, 15))  # Minimum 15s refresh on mobile
+    time.sleep(max(update_interval, 15))  # Minimum 15s refresh
 
 if __name__ == "__main__":
     main_display()
