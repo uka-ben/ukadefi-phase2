@@ -18,7 +18,7 @@ import base64
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(white,blue, blue);
+    background: linear-gradient(white,skyblue, blue);
     color: white;
 }
 [data-testid="stSidebar"] {
