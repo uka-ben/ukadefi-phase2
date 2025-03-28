@@ -161,12 +161,12 @@ st.image(image1)
 st.markdown(" ")
 st.subheader("TIMETON 0.0.2 -for financial market modelling")
 
-st.markdown("**TIMETON** is a powerful system with several phases. ukadefi can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
+st.markdown("**TIMETON** is a powerful system with several phases. timeton can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
 st.markdown("This app presents **TIMETON** being applied to detect and forecast price reversal points in financial markets.")
 
 # Input controls
 symbol = st.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
-interval = st.selectbox("Interval", ["1min", "5min", "30min", "1h", "4h", "1day", "1week", "1month"])
+interval = st.selectbox("Interval", ["5min", "1h", "4h", "1day", "1week", "1month"])
 
 # Sidebar controls
 st.sidebar.title("Controls")
