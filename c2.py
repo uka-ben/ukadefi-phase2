@@ -18,7 +18,7 @@ import base64
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(white,skyblue, skyblue);
+    background: linear-gradient(pink,skyblue, skyblue);
     color: black;
 }
 [data-testid="stSidebar"] {
@@ -495,7 +495,7 @@ def short_swing_1(data):
     ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
     ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
     ax2.set_title("Market Twist", fontsize=12)
-    ax2.legend(loc='upper left')
+    #ax2.legend(loc='upper left')
     ax2.grid(True, linestyle='--', alpha=0.7)
     
     plt.tight_layout()
@@ -969,24 +969,24 @@ def swing_3(data):
     ax2.plot(data.index, data['RSI_22'], color='orange', label='RSI 22')
     ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
     ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('RSI 10 and RSI 22 Crossover')
-    ax2.legend()
+    #ax2.set_title('RSI 10 and RSI 22 Crossover')
+    #ax2.legend()
 
     # 3. CCI Plot
     ax3.plot(data.index, data['CCI'], color='blue', label='CCI (20)')
     ax3.axhline(100, color='red', linestyle='--', alpha=0.5)
     ax3.axhline(-100, color='green', linestyle='--', alpha=0.5)
     ax3.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax3.set_title('Commodity Channel Index (CCI)')
-    ax3.legend()
+    #ax3.set_title('Commodity Channel Index (CCI)')
+    #ax3.legend()
 
     # 4. Ehlers Fisher Transform
     ax4.plot(data.index, data['Ehlers_Fisher_Smoothed'], color='darkorange', label='Smoothed Ehlers Fisher Transform')
     ax4.axhline(0.5, color='red', linestyle='--', alpha=0.5, label='Overbought Level')
     ax4.axhline(-0.5, color='green', linestyle='--', alpha=0.5, label='Oversold Level')
     ax4.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax4.set_title('Ehlers Fisher Transform (10-period)')
-    ax4.legend()
+    #ax4.set_title('Ehlers Fisher Transform (10-period)')
+    #ax4.legend()
 
     # 5. SMI Ergodic Indicator
     ax5.plot(data.index, data['SMI_Ergodic'], color='blue', label='SMI Ergodic Line')
@@ -998,10 +998,10 @@ def swing_3(data):
     ax5.fill_between(data.index, data['SMI_Ergodic'], data['SMI_Trigger'],
                     where=data['SMI_Ergodic'] < data['SMI_Trigger'],
                     facecolor='red', alpha=0.3, interpolate=True)
-    ax5.set_title('SMI Ergodic Indicator (20,5,3)')
+    #ax5.set_title('SMI Ergodic Indicator (20,5,3)')
     ax5.axhline(0.01, color='red', linestyle='--', alpha=0.5, label='Overbought Level')
     ax5.axhline(-0.01, color='green', linestyle='--', alpha=0.5, label='Oversold Level')
-    ax5.legend()
+    #ax5.legend()
 
     # 6. Bias Indicator
     ax6.plot(data.index, data['Bias'], color='gray', alpha=0.5, label='Raw Bias')
@@ -1015,8 +1015,8 @@ def swing_3(data):
     ax6.fill_between(data.index, data['Bias_Smoothed'], -0.2,
                     where=data['Bias_Smoothed'] <= -0.2,
                     facecolor='red', alpha=0.2, interpolate=True)
-    ax6.set_title('Market Bias Indicator (RSI + MACD + CCI)')
-    ax6.legend()
+    #ax6.set_title('Market Bias Indicator (RSI + MACD + CCI)')
+    #ax6.legend()
 
     # 7. Inertia Indicator (Adaptive Momentum Strength)
     ax7.plot(data.index, data['Inertia'], color='gray', alpha=0.5, label='Raw Inertia')
@@ -1028,8 +1028,8 @@ def swing_3(data):
     ax7.fill_between(data.index, data['Inertia_Smoothed'], 0,
                     where=data['Inertia_Smoothed'] < 0,
                     facecolor='red', alpha=0.2, interpolate=True)
-    ax7.set_title('Inertia Indicator (Adaptive Momentum Strength)')
-    ax7.legend()
+    #ax7.set_title('Inertia Indicator (Adaptive Momentum Strength)')
+    #ax7.legend()
 
     # 8. Divergence Score
     ax8.bar(data.index, data['Divergence_Score'],
@@ -1038,7 +1038,7 @@ def swing_3(data):
     ax8.axhline(3, color='green', linestyle='--', alpha=0.3)
     ax8.axhline(-3, color='red', linestyle='--', alpha=0.3)
     ax8.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax8.set_title('Divergence Score (RSI + MACD + KDJ + CCI)')
+    #ax8.set_title('Divergence Score (RSI + MACD + KDJ + CCI)')
 
     # Highlight strong divergence signals
     strong_bullish = data['Divergence_Score'] >= 3
@@ -1047,7 +1047,7 @@ def swing_3(data):
                  color='lime', marker='o', s=50, label='Strong Bullish')
     ax8.scatter(data.index[strong_bearish], data['Divergence_Score'][strong_bearish],
                  color='darkred', marker='o', s=50, label='Strong Bearish')
-    ax8.legend()
+    #ax8.legend()
 
     plt.tight_layout()
     
