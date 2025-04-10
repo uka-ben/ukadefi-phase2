@@ -166,7 +166,7 @@ st.markdown("This app presents **TIMETON** being applied to detect and forecast 
 
 # Input controls
 symbol = st.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
-interval = st.selectbox("Interval", ["5min", "1h", "4h", "1day", "1week", "1month"])
+interval = st.selectbox("Interval", ["1min",5min", x15min", "1h", "4h", "1day", "1week", "1month"])
 
 # Sidebar controls
 st.sidebar.title("Controls")
@@ -714,8 +714,8 @@ def short_swing_2(data):
     
     ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
     ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('RSI 10 vs RSI 20', fontsize=12)
-    ax2.legend()
+    #ax2.set_title('RSI 10 vs RSI 20', fontsize=12)
+    #ax2.legend()
     ax2.grid(True, linestyle='--', alpha=0.7)
     
     plt.tight_layout()
@@ -960,7 +960,7 @@ def swing_3(data):
                 color='green', marker='^', label='Confirmed Bullish Divergence', s=100)
     ax1.scatter(data.index[data['Confirmed_Divergence'] == -1], data['Close'][data['Confirmed_Divergence'] == -1],
                 color='red', marker='v', label='Confirmed Bearish Divergence', s=100)
-    ax1.set_title(f'{symbol} Price with Confirmed Divergences (RSI + Bias + Fisher Confirmation)')
+    ax1.set_title(f'{symbol} Price')
     ax1.legend()
 
     # 2. RSI Plot
