@@ -18,15 +18,15 @@ import base64
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(white,skyblue, blue);
-    color: white;
+    background: linear-gradient(white,skyblue, skyblue);
+    color: black;
 }
 [data-testid="stSidebar"] {
     background: linear-gradient(skyblue, blue) !important;
-    color: white;
+    color: black;
 }
 [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-    color: white;
+    color: black;
 }
 footer {
     visibility: hidden;
