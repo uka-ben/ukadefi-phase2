@@ -166,7 +166,7 @@ st.markdown("This app presents **TIMETON** being applied to detect and forecast 
 
 # Input controls
 symbol = st.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
-interval = st.selectbox("Interval", ["1min",5min", x15min", "1h", "4h", "1day", "1week", "1month"])
+interval = st.selectbox("Interval", ["1min","5min", "15min", "1h", "4h", "1day", "1week", "1month"])
 
 # Sidebar controls
 st.sidebar.title("Controls")
