@@ -159,14 +159,14 @@ st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
-st.subheader("TIMETON 0.0.2 -for financial market modelling")
+st.subheader("TIMETION 0.0.2 -for financial market modelling")
 
-st.markdown("**TIMETON** is a powerful system with several phases. timeton can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
-st.markdown("This app presents **TIMETON** being applied to detect and forecast price reversal points in financial markets.")
+st.markdown("**TIMETION** is a powerful system with several phases. timetion can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
+st.markdown("This app presents **TIMETION** being applied to detect and forecast price reversal points in financial markets.")
 
 # Input controls
 symbol = st.text_input("Symbol.. EUR,BTC,ETH,AAPL,etc", "EUR").upper()
-interval = st.selectbox("Interval", ["5min", "1h", "4h", "1day", "1week", "1month"])
+interval = st.selectbox("Interval", ["1min","5min", "15min", "1h", "4h", "1day", "1week", "1month"])
 
 # Sidebar controls
 st.sidebar.title("Controls")
@@ -182,7 +182,7 @@ api_key = "cef197ce3e054ee69d6c795401b229cd"
 # Live update controls
 live_update = st.sidebar.checkbox("Live Chat Update", True)
 lookback = st.sidebar.slider("Chat Lookback Period (bars)", 50, 1000, 300)
-update_interval = st.sidebar.slider("Live Update Interval (seconds)", 15, 300, 30)
+update_interval = st.sidebar.slider("Live Update Interval (seconds)", 5, 300, 10)
 
 # Alert configuration
 st.sidebar.title("Alert Settings")
