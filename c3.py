@@ -74,7 +74,7 @@ def decompress_data(compressed_data):
     """Decompress brotli compressed data"""
     return json.loads(brotli.decompress(compressed_data).decode('utf-8'))
 
-def compress_image(fig, quality=85):
+def compress_image(fig, quality=100):
     """Convert matplotlib figure to optimized WebP"""
     png_buf = io.BytesIO()
     fig.savefig(png_buf, format='png', dpi=80)
@@ -686,7 +686,7 @@ def short_swing_2(data):
     ax1.set_ylabel('Price')
     ax1.set_title(f'{symbol} Price with Multi Reversal Traps ({interval})', fontsize=12)
     ax1.grid(True, linestyle='--', alpha=0.7)
-    ax1.legend()
+    #ax1.legend()
     
     # RSI plot
     ax2.plot(data.index, data['RSI_10'], color='blue', label='RSI 10')
@@ -708,13 +708,13 @@ def short_swing_2(data):
     rsi_up = data[crossover_up]
     rsi_down = data[crossover_down]
     
-    ax2.scatter(rsi_up.index, rsi_up['RSI_10'], color='green', marker='^', s=80, label='Bullish Crossover')
-    ax2.scatter(rsi_down.index, rsi_down['RSI_10'], color='red', marker='v', s=80, label='Bearish Crossover')
+    ax2.scatter(rsi_up.index, rsi_up['RSI_10'], color='green', marker='^', s=80, label='Bullish')
+    ax2.scatter(rsi_down.index, rsi_down['RSI_10'], color='red', marker='v', s=80, label='Bearish')
     
     ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
     ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('RSI 10 vs RSI 20', fontsize=12)
-    ax2.legend()
+    #ax2.set_title('RSI 10 vs RSI 20', fontsize=12)
+    #ax2.legend()
     ax2.grid(True, linestyle='--', alpha=0.7)
     
     plt.tight_layout()
@@ -1002,8 +1002,8 @@ def swing_3(data):
     
     ax2.axhline(70, color='gray', linestyle='--', alpha=0.5)
     ax2.axhline(30, color='gray', linestyle='--', alpha=0.5)
-    ax2.set_title('RSI 10 and RSI 22 Crossover')
-    ax2.legend()
+    ax2.set_title('Timetion syma')
+   # ax2.legend()
 
     # 3. CCI Plot
     ax3.plot(data.index, data['CCI'], color='blue', label='CCI (20)')
@@ -1023,8 +1023,8 @@ def swing_3(data):
     ax3.axhline(100, color='red', linestyle='--', alpha=0.5)
     ax3.axhline(-100, color='green', linestyle='--', alpha=0.5)
     ax3.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax3.set_title('Commodity Channel Index (CCI)')
-    ax3.legend()
+    #ax3.set_title('Timetion Index')
+    #ax3.legend()
 
     # 4. Ehlers Fisher Transform
     current_fisher = data['Ehlers_Fisher_Smoothed'].iloc[-1]
@@ -1044,8 +1044,8 @@ def swing_3(data):
     ax4.axhline(0.5, color='red', linestyle='--', alpha=0.5, label='Overbought Level')
     ax4.axhline(-0.5, color='green', linestyle='--', alpha=0.5, label='Oversold Level')
     ax4.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax4.set_title('Ehlers Fisher Transform (10-period)')
-    ax4.legend()
+    ax4.set_title('Timetion FISHER')
+    #ax4.legend()
 
     # 5. SMI Ergodic Indicator
     current_smi = data['SMI_Ergodic'].iloc[-1]
@@ -1070,7 +1070,7 @@ def swing_3(data):
     ax5.fill_between(data.index, data['SMI_Ergodic'], data['SMI_Trigger'],
                     where=data['SMI_Ergodic'] < data['SMI_Trigger'],
                     facecolor='red', alpha=0.3, interpolate=True)
-    ax5.set_title('SMI Ergodic Indicator (20,5,3)')
+    ax5.set_title('Timetion ERG')
     ax5.axhline(0.01, color='red', linestyle='--', alpha=0.5, label='Overbought Level')
     ax5.axhline(-0.01, color='green', linestyle='--', alpha=0.5, label='Oversold Level')
     ax5.legend()
@@ -1100,7 +1100,7 @@ def swing_3(data):
     ax6.fill_between(data.index, data['Bias_Smoothed'], -0.2,
                     where=data['Bias_Smoothed'] <= -0.2,
                     facecolor='red', alpha=0.2, interpolate=True)
-    ax6.set_title('Market Bias Indicator (RSI + MACD + CCI)')
+    ax6.set_title('Timetion Bias')
     ax6.legend()
 
     # 7. Inertia Indicator (Adaptive Momentum Strength)
@@ -1126,7 +1126,7 @@ def swing_3(data):
     ax7.fill_between(data.index, data['Inertia_Smoothed'], 0,
                     where=data['Inertia_Smoothed'] < 0,
                     facecolor='red', alpha=0.2, interpolate=True)
-    ax7.set_title('Inertia Indicator (Adaptive Momentum Strength)')
+    ax7.set_title('Timetion Inertia SAYO')
     ax7.legend()
 
     # 8. Divergence Score
@@ -1149,7 +1149,7 @@ def swing_3(data):
     ax8.axhline(3, color='green', linestyle='--', alpha=0.3)
     ax8.axhline(-3, color='red', linestyle='--', alpha=0.3)
     ax8.axhline(0, color='gray', linestyle='-', alpha=0.5)
-    ax8.set_title('Divergence Score (RSI + MACD + KDJ + CCI)')
+    ax8.set_title('Timetion Elta')
 
     # Highlight strong divergence signals
     strong_bullish = data['Divergence_Score'] >= 3
