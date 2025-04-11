@@ -161,7 +161,7 @@ st.image(image1)
 st.markdown(" ")
 st.subheader("TIMETION 0.0.2 -for financial market modelling")
 
-st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Learning for Market Dynamics.** TIMETION is powerful system with several phases. timetion can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
+st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Learning for Market Dynamics.** TIMETION is a powerful system with several phases. Timetion can offer solution to problems involving **time series, fraud detection, robotics, decisioning**, etc.")
 st.markdown("Timetion: Uncovering hidden motion within time — powered by pattern-based AI. This app presents **TIMETION** being applied to detect and forecast price reversal points in financial markets.")
 
 # Input controls
