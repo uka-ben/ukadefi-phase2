@@ -1210,11 +1210,11 @@ def main_display():
         return
     
     # Strategy display
-    if page == "Short Swing 1":
-        fig, current_signals = short_swing_1(data)
-    elif page == "Short Swing 2":
-        fig, current_signals = short_swing_2(data)
-    elif page == "Swing 3":
+   # if page == "Short Swing 1":
+   #     fig, current_signals = short_swing_1(data)
+    #elif page == "Short Swing 2":
+      #  fig, current_signals = short_swing_2(data)
+    if page == "Swing 3":
         fig, current_signals = swing_3(data)
     
     # Display the chart with WebP compression
