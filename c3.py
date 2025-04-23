@@ -171,7 +171,9 @@ interval = st.selectbox("Interval", ["1min","5min", "15min", "1h", "4h", "1day",
 st.sidebar.title("Controls")
 page = st.radio(
     "Select Strategy", 
-    ["Short Swing 1", "Short Swing 2", "Swing 3"],
+    [
+#"Short Swing 1", "Short Swing 2", 
+"Swing 3"],
     index=0, horizontal=True
 )
 
