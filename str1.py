@@ -406,7 +406,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
                     linewidth=5.0,
-                    alpha=2.0,
+                    alpha=1.0,
                     solid_capstyle='round')
 
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
