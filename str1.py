@@ -381,13 +381,13 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=32, width=2, length=8, pad=8)
-        ax.tick_params(axis='both', which='major', labelsize=32)
+                      labelsize=40, width=4, length=8, pad=8)
+        ax.tick_params(axis='both', which='minor', labelsize=40)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(32)
+            item.set_fontsize(42)
             item.set_fontstyle('normal')
 
         ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
