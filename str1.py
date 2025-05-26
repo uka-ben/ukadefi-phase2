@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import requests
 from scipy.signal import argrelextrema
-import time
+import time  
 from datetime import datetime
 import brotli
 import threading
@@ -369,7 +369,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 10  # Very wide
+    width = 30  # Very wide
     height = 10 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=120)
