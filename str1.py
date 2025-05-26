@@ -381,8 +381,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=24, width=2, length=8, pad=8)
-        ax.tick_params(axis='both', which='minor', labelsize=16)
+                      labelsize=32, width=2, length=8, pad=8)
+        ax.tick_params(axis='both', which='major', labelsize=32)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
@@ -406,7 +406,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
                     linewidth=5.0,
-                    alpha=1.0,
+                    alpha=2.0,
                     solid_capstyle='round')
 
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
@@ -424,17 +424,17 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[0].text(0.02, 0.95, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=22,
+                fontsize=36,
                 fontweight='bold',
                 va='top',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=4))
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=28,
+                     fontsize=32,
                      fontweight='bold',
                      pad=20)
-    axes[0].legend(loc='upper left', fontsize=18)
-    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=1.5)
+    #axes[0].legend(loc='upper left', fontsize=18)
+    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
 
     plot_idx = 1
 
