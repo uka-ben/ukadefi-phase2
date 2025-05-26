@@ -369,8 +369,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 30  # Very wide
-    height = 10 * num_plots  # Tall
+    width = 36  # Very wide
+    height = 20 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=120)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[8] + [5]*len(visible_indicators))
