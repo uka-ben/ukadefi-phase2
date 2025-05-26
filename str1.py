@@ -65,6 +65,10 @@ body {
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
+
+# API Configuration
+api_key = "cef197ce3e054ee69d6c795401b229cd"
+
 # Compression helper functions
 def compress_data(data):
     if isinstance(data, (pd.DataFrame, pd.Series)):
