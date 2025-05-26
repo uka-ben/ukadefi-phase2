@@ -405,7 +405,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=3.0,
+                    linewidth=5.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
@@ -420,14 +420,14 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                    edgecolor='black', linewidth=2,
                    label='Bearish Div')
 
-    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=2.0)
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
     axes[0].text(0.02, 0.95, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
                 fontsize=22,
                 fontweight='bold',
                 va='top',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=1, pad=4))
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=4))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
                      fontsize=28,
@@ -452,26 +452,26 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                        label='RSI 22')
 
     current_rsi = data['RSI_10'].iloc[-1]
-    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=2.0)
+    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=4.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
                           xy=(0.98, current_rsi),
                           xycoords=('axes fraction', 'data'),
                           xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=20,
+                          fontsize=30,
                           fontweight='bold',
                           va='center',
                           ha='right',
                           bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=1, pad=4))
 
-    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    axes[plot_idx].legend(loc='upper left', fontsize=18)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
