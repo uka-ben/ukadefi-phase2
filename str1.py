@@ -369,7 +369,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 20  # Very wide
+    width = 15  # Very wide
     height = 10 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=120)
