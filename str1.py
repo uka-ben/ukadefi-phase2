@@ -372,8 +372,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     width = 33  # Very wide
     height = 11 * num_plots  # Tall
     
-    fig = Figure(figsize=(width, height), dpi=120)
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[8] + [5]*len(visible_indicators))
+    fig = Figure(figsize=(width, height), dpi=150)
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[10] + [5]*len(visible_indicators))
 
     axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
@@ -387,7 +387,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(26)
+            item.set_fontsize(32)
             item.set_fontstyle('normal')
 
         ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
