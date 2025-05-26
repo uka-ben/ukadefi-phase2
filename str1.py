@@ -15,84 +15,55 @@ from PIL import Image
 import io
 import base64
 
-# Initialize session state properly
-if 'session_info' not in st.session_state:
-    st.session_state.session_info = {
-        'previous_signals': {
-            "Bullish Divergence": [],
-            "Bearish Divergence": [],
-            "RSI Crossover": []
-        },
-        'alert_history': [],
-        'sse_client': None,
-        'last_data': None
-    }
-
-# Configure dark theme
-st.set_page_config(
-    page_title="TIMETION 0.2",
-    page_icon="📈",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Dark theme CSS
-dark_theme_css = """
+# Configure page layout and style
+page_bg_img = """
 <style>
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(#121212, #1a1a1a, #1a1a1a);
-        color: white;
-    }
-    [data-testid="stSidebar"] {
-        background: linear-gradient(#1a1a1a, #121212) !important;
-        color: white !important;
-    }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-        color: white !important;
-    }
-    .stAlert, .stToast {
-        background-color: #333333 !important;
-        color: white !important;
-    }
-    .st-bb, .st-at, .st-af, .st-ag, .st-ah, .st-ai, .st-aj {
-        color: white !important;
-    }
-    .stTextInput>div>div>input, .stSelectbox>div>div>select {
-        background-color: #333333;
-        color: white;
-    }
-    .stDataFrame {
-        background-color: #1e1e1e;
-    }
-    footer {
-        visibility: hidden;
-    }
-    header {
-        visibility: hidden;
-    }
-    body {
-        font-family: "Source Sans Pro", sans-serif;
-        color: white;
-    }
-    .stButton>button {
-        background-color: #3d5afe;
-        color: white;
-        font-size: 16px;
-        border-radius: 8px;
-        padding: 10px 24px;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    .stButton>button:hover {
-        background-color: #536dfe;
-    }
-    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
-        color: #bb86fc;
-    }
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(pink,skyblue, skyblue);
+    color: black;
+}
+[data-testid="stSidebar"] {
+    background: linear-gradient(skyblue, blue) !important;
+    color: black;
+}
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    color: black;
+}
+footer {
+    visibility: hidden;
+}
+header {
+    visibility: hidden;
+}
+body {
+    font-family: "Source Sans Pro", sans-serif;
+}
+.stButton>button {
+    background-color: blue;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    padding: 10px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.stButton>button:hover {
+    background-color: #45a804;
+}
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    color: #2c3e50;
+}
+.stDataFrame {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.stProgress > div > div > div {
+    background-color: #4CAF50;
+}
 </style>
 """
-st.markdown(dark_theme_css, unsafe_allow_html=True)
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Compression helper functions
 def compress_data(data):
@@ -105,7 +76,7 @@ def decompress_data(compressed_data):
 
 def compress_image(fig, quality=100):
     png_buf = io.BytesIO()
-    fig.savefig(png_buf, format='png', dpi=120, facecolor=fig.get_facecolor())
+    fig.savefig(png_buf, format='png', dpi=120)
     png_buf.seek(0)
     img = Image.open(png_buf)
     webp_buf = io.BytesIO()
@@ -128,7 +99,7 @@ def play_alert_sound(alert_type="neutral"):
     """
     st.components.v1.html(audio_html, height=0)
 
-# SSE Client
+# SSE Client implementation
 class SSEClient:
     def __init__(self, api_key, symbol, interval, lookback):
         self.api_key = api_key
@@ -183,14 +154,14 @@ st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
-st.subheader("TIMETION 0.2 - for financial market modelling")
+st.subheader("TIMETION 0.2 - Financial Market Modelling")
 
 st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Learning for Market Dynamics.**")
 
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
-    symbol = st.text_input("Symbol (EUR, BTC, ETH, AAPL, etc)", "EUR").upper()
+    symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
     interval = st.selectbox("Interval", ["1min","5min", "15min", "1h", "4h", "1day", "1week", "1month"])
 with col3:
@@ -198,17 +169,6 @@ with col3:
 
 # Sidebar controls
 st.sidebar.title("Controls")
-page = st.radio(
-    "Select Strategy", 
-    ["Swing 3"],
-    index=0, horizontal=True
-)
-
-# API Configuration
-api_key = "cef197ce3e054ee69d6c795401b229cd"
-
-# Live update controls
-st.sidebar.title("Settings")
 live_update = st.sidebar.checkbox("Live Update", True)
 lookback = st.sidebar.slider("Lookback Period (bars)", 50, 1000, 300)
 update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
@@ -217,12 +177,23 @@ update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
 st.sidebar.title("Alert Settings")
 alert_enabled = st.sidebar.checkbox("Enable Alerts", True)
 alert_sound = st.sidebar.checkbox("Play Alert Sound", True)
-alert_volume = st.sidebar.slider("Alert Volume", 0.1, 1.0, 0.7)
 alert_types = st.sidebar.multiselect(
     "Alert Types",
     ["Bullish Divergence", "Bearish Divergence", "RSI Crossover"],
     default=["Bullish Divergence", "Bearish Divergence"]
 )
+
+# Initialize session state
+if 'initialized' not in st.session_state:
+    st.session_state.initialized = True
+    st.session_state.previous_signals = {
+        "Bullish Divergence": [],
+        "Bearish Divergence": [],
+        "RSI Crossover": []
+    }
+    st.session_state.alert_history = []
+    st.session_state.sse_client = None
+    st.session_state.last_data = None
 
 # Technical indicator functions
 def compute_rsi(series, period=14):
@@ -357,7 +328,7 @@ def update_data_with_sse(prev_data, new_data_point):
 def check_for_new_signals(current_signals):
     new_signals = {}
     for signal_type in current_signals:
-        previous = st.session_state.session_info['previous_signals'].get(signal_type, [])
+        previous = st.session_state.previous_signals.get(signal_type, [])
         current = current_signals.get(signal_type, [])
         
         new = [s for s in current if s not in previous]
@@ -381,53 +352,45 @@ def trigger_alert(alert_type, price, timestamp):
         sound_type = "bullish" if "Bullish" in alert_type else "bearish" if "Bearish" in alert_type else "neutral"
         play_alert_sound(sound_type)
     
-    st.session_state.session_info['alert_history'].append({
+    st.session_state.alert_history.append({
         "timestamp": timestamp,
         "type": alert_type,
         "price": price,
         "symbol": symbol
     })
     
-    st.session_state.session_info['alert_history'] = st.session_state.session_info['alert_history'][-50:]
+    st.session_state.alert_history = st.session_state.alert_history[-50:]
 
 def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market_type):
-    plt.style.use('dark_background')
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 50  # Inches
-    height = 120  # Inches
+    width = 25  # Very wide
+    height = 6 * num_plots  # Tall
     
-    fig = Figure(figsize=(width, height), dpi=120, facecolor='#121212')
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[10] + [6]*len(visible_indicators))
+    fig = Figure(figsize=(width, height), dpi=120)
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[8] + [5]*len(visible_indicators))
 
-    dark_bg = '#121212'
-    grid_color = '#333333'
-    text_color = 'white'
-    spine_color = '#555555'
-
-    axes = [fig.add_subplot(gs[0], facecolor=dark_bg)]
+    axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
-        axes.append(fig.add_subplot(gs[i], sharex=axes[0], facecolor=dark_bg))
+        axes.append(fig.add_subplot(gs[i], sharex=axes[0]))
 
     for ax in axes:
-        ax.set_facecolor(dark_bg)
-        ax.grid(True, color=grid_color, linestyle='-', linewidth=3.0, alpha=0.7)
-        
         ax.tick_params(axis='both', which='major',
-                      labelsize=48, width=6, length=16, pad=16,
-                      colors=text_color)
-        ax.tick_params(axis='both', which='minor', labelsize=32, colors=text_color)
+                      labelsize=24, width=2, length=8, pad=8)
+        ax.tick_params(axis='both', which='minor', labelsize=16)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
-            item.set_color(text_color)
             item.set_fontweight('bold')
-            item.set_fontsize(52)
+            item.set_fontsize(26)
+            item.set_fontstyle('normal')
 
-        for spine in ax.spines.values():
-            spine.set_color(spine_color)
-            spine.set_linewidth(6)
+        ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
+        ax.spines['left'].set_linewidth(2)
+        ax.spines['bottom'].set_linewidth(2)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
@@ -438,153 +401,153 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=8.0,
+                    linewidth=3.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=600,
-                   edgecolor='white', linewidth=4,
-                   label='Confirmed Bullish Divergence')
+                   color='green', marker='^', s=200,
+                   edgecolor='black', linewidth=2,
+                   label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=600,
-                   edgecolor='white', linewidth=4,
-                   label='Confirmed Bearish Divergence')
+                   color='red', marker='v', s=200,
+                   edgecolor='black', linewidth=2,
+                   label='Bearish Div')
 
-    axes[0].axhline(y=current_price, color='cyan', linestyle='--', alpha=1.0, linewidth=6.0)
-    axes[0].annotate(f'{current_price:.5f} ({current_time})',
-                    xy=(1, current_price),
-                    xycoords=('axes fraction', 'data'),
-                    xytext=(30, 0),
-                    textcoords='offset points',
-                    color='cyan',
-                    fontsize=56,
-                    fontweight='bold',
-                    va='center',
-                    bbox=dict(facecolor='#333333', alpha=0.9, edgecolor='white', linewidth=4, pad=12))
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=2.0)
+    axes[0].text(0.02, 0.95, f'{current_price:.5f} ({current_time})',
+                transform=axes[0].transAxes,
+                color='blue',
+                fontsize=22,
+                fontweight='bold',
+                va='top',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=1, pad=4))
 
-    axes[0].set_title(f'{market_type}: {symbol} ({interval} interval)',
-                     fontsize=64,
+    axes[0].set_title(f'{market_type}: {symbol} ({interval})',
+                     fontsize=28,
                      fontweight='bold',
-                     pad=60,
-                     color='white')
-    axes[0].legend(loc='upper left', fontsize=48, prop={'weight':'bold', 'size':48})
-    axes[0].grid(True, linestyle='-', alpha=0.9, linewidth=3.0)
+                     pad=20)
+    axes[0].legend(loc='upper left', fontsize=18)
+    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=1.5)
 
     plot_idx = 1
 
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
-                          linewidth=7.0,
+                          linewidth=2.5,
                           alpha=1.0,
-                          solid_capstyle='round')
+                          solid_capstyle='round',
+                          label='RSI 10' if i == 1 else "")
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
-                       linewidth=6.0,
-                       alpha=1.0)
+                       linewidth=2.0,
+                       alpha=1.0,
+                       label='RSI 22')
 
     current_rsi = data['RSI_10'].iloc[-1]
-    axes[plot_idx].axhline(y=current_rsi, color='cyan', linestyle='--', alpha=1.0, linewidth=6.0)
+    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=2.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
-                          xy=(1, current_rsi),
+                          xy=(0.98, current_rsi),
                           xycoords=('axes fraction', 'data'),
-                          xytext=(30, 0),
+                          xytext=(-10, 0),
                           textcoords='offset points',
-                          color='cyan',
-                          fontsize=52,
+                          color='blue',
+                          fontsize=20,
                           fontweight='bold',
                           va='center',
-                          bbox=dict(facecolor='#333333', alpha=0.9, edgecolor='white', linewidth=4, pad=12))
+                          ha='right',
+                          bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=1, pad=4))
 
-    axes[plot_idx].axhline(70, color='magenta', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(30, color='lime', linestyle='--', alpha=1.0, linewidth=5.0)
+    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=1.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
-                           fontsize=56,
+                           fontsize=26,
                            fontweight='bold',
-                           pad=50,
-                           color='white')
-    axes[plot_idx].legend(loc='upper left', fontsize=48, prop={'weight':'bold', 'size':48})
+                           pad=15)
+    axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
-                       color='gold',
-                       linewidth=6.0,
+                       color='darkorange',
+                       linewidth=2.5,
                        alpha=1.0,
-                       solid_capstyle='round')
-    axes[plot_idx].axhline(0.5, color='magenta', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(-0.5, color='lime', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(0, color='white', linestyle='-', alpha=1.0, linewidth=4.0)
+                       solid_capstyle='round',
+                       label='Fisher Transform')
+    axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=56,
+                           fontsize=26,
                            fontweight='bold',
-                           pad=50,
-                           color='white')
-    axes[plot_idx].legend(loc='upper left', fontsize=48, prop={'weight':'bold', 'size':48})
+                           pad=15)
+    axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Bias'],
-                       color='silver',
-                       linewidth=5.0,
-                       alpha=1.0)
+                       color='gray',
+                       linewidth=2.0,
+                       alpha=0.7,
+                       label='Raw Bias')
     axes[plot_idx].plot(data.index, data['Bias_Smoothed'],
-                       color='violet',
-                       linewidth=6.0,
+                       color='purple',
+                       linewidth=2.5,
                        alpha=1.0,
-                       solid_capstyle='round')
-    axes[plot_idx].axhline(0.3, color='magenta', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(-0.3, color='lime', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(0, color='white', linestyle='-', alpha=1.0, linewidth=4.0)
+                       solid_capstyle='round',
+                       label='Smoothed Bias')
+    axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
 
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], 0.2,
                               where=data['Bias_Smoothed'] >= 0.2,
-                              facecolor='lime', alpha=0.3, interpolate=True)
+                              facecolor='green', alpha=0.3, interpolate=True)
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], -0.2,
                               where=data['Bias_Smoothed'] <= -0.2,
-                              facecolor='magenta', alpha=0.3, interpolate=True)
+                              facecolor='red', alpha=0.3, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
-                           fontsize=56,
+                           fontsize=26,
                            fontweight='bold',
-                           pad=50,
-                           color='white')
-    axes[plot_idx].legend(loc='upper left', fontsize=48, prop={'weight':'bold', 'size':48})
+                           pad=15)
+    axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
-    bar_width = 1.5 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
+    bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
     axes[plot_idx].bar(data.index, data['Divergence_Score'],
-                      color=np.where(data['Divergence_Score'] > 0, 'lime', 'magenta'),
+                      color=np.where(data['Divergence_Score'] > 0, 'green', 'red'),
                       width=bar_width,
-                      alpha=1.0,
-                      edgecolor='white',
-                      linewidth=3.5)
+                      alpha=0.7,
+                      edgecolor='black',
+                      linewidth=1.0)
 
-    axes[plot_idx].axhline(3, color='lime', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(-3, color='magenta', linestyle='--', alpha=1.0, linewidth=5.0)
-    axes[plot_idx].axhline(0, color='white', linestyle='-', alpha=1.0, linewidth=4.0)
+    axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
 
     strong_bullish = data['Divergence_Score'] >= 3
     strong_bearish = data['Divergence_Score'] <= -3
     axes[plot_idx].scatter(data.index[strong_bullish], data['Divergence_Score'][strong_bullish],
-                         color='lime', marker='o', s=300,
-                         edgecolor='white', linewidth=4.0,
+                         color='lime', marker='o', s=100,
+                         edgecolor='black', linewidth=1.5,
                          label='Strong Bullish')
     axes[plot_idx].scatter(data.index[strong_bearish], data['Divergence_Score'][strong_bearish],
-                         color='magenta', marker='o', s=300,
-                         edgecolor='white', linewidth=4.0,
+                         color='darkred', marker='o', s=100,
+                         edgecolor='black', linewidth=1.5,
                          label='Strong Bearish')
     axes[plot_idx].set_title('DIVERGENCE SCORE',
-                           fontsize=56,
+                           fontsize=26,
                            fontweight='bold',
-                           pad=50,
-                           color='white')
-    axes[plot_idx].legend(loc='upper left', fontsize=48, prop={'weight':'bold', 'size':48})
+                           pad=15)
+    axes[plot_idx].legend(loc='upper left', fontsize=18)
 
-    fig.tight_layout(pad=12.0, h_pad=10.0, w_pad=10.0, rect=[0, 0, 1, 0.95])
-    
+    fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
+    fig.subplots_adjust(top=0.94, right=0.95)
+
     webp_buf = compress_image(fig)
     plt.close(fig)
+
     return webp_buf
 
 def swing_3(data):
@@ -593,6 +556,7 @@ def swing_3(data):
     
     data = data.copy()
     
+    # Compute indicators
     data['RSI_14'] = compute_rsi(data['Close'])
     data['RSI_10'] = compute_rsi(data['Low'], period=9)
     data['RSI_22'] = compute_rsi(data['Close'], period=22)
@@ -604,8 +568,10 @@ def swing_3(data):
     data['Bias'], data['Bias_Smoothed'] = compute_bias_indicator(data)
     data['Inertia'], data['Inertia_Smoothed'] = compute_inertia_indicator(data)
 
+    # Find extrema
     maxima, minima = find_extrema(data['Close'], order=30)
 
+    # Compute divergences
     data['DIV_RSI'] = np.where(
         (data.index.isin(data.index[maxima])) & (data['RSI_14'].diff() > -1) & (data['RSI_14'] > 50), -50,
         np.where((data.index.isin(data.index[minima])) & (data['RSI_14'].diff() < 1) & (data['RSI_14'] < 50), 2, 0))
@@ -677,20 +643,20 @@ def swing_3(data):
             divergence_price = data['Close'].iloc[i]
         if divergence_state == 1:
             if data['Close'].iloc[i] < divergence_price:
-                price_line_colors.append('white')
+                price_line_colors.append('black')
                 divergence_state = 0
                 divergence_price = None
             else:
-                price_line_colors.append('lime')
+                price_line_colors.append('green')
         elif divergence_state == -1:
             if data['Close'].iloc[i] > divergence_price:
-                price_line_colors.append('white')
+                price_line_colors.append('black')
                 divergence_state = 0
                 divergence_price = None
             else:
-                price_line_colors.append('magenta')
+                price_line_colors.append('red')
         else:
-            price_line_colors.append('white')
+            price_line_colors.append('black')
 
     rsi_crossover_state = 0
     rsi_10_colors = []
@@ -700,17 +666,17 @@ def swing_3(data):
         elif data['RSI_10'].iloc[i] < data['RSI_22'].iloc[i] and (i == 0 or data['RSI_10'].iloc[i-1] >= data['RSI_22'].iloc[i-1]):
             rsi_crossover_state = -1
         if rsi_crossover_state == 1:
-            if price_line_colors[i] == 'lime':
-                rsi_10_colors.append('lime')
+            if price_line_colors[i] == 'green':
+                rsi_10_colors.append('green')
             else:
-                rsi_10_colors.append('silver')
+                rsi_10_colors.append('gray')
         elif rsi_crossover_state == -1:
-            if price_line_colors[i] == 'magenta':
-                rsi_10_colors.append('lime')
+            if price_line_colors[i] == 'red':
+                rsi_10_colors.append('green')
             else:
-                rsi_10_colors.append('silver')
+                rsi_10_colors.append('gray')
         else:
-            rsi_10_colors.append('silver')
+            rsi_10_colors.append('gray')
 
     fig_buf = create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market_type)
     
@@ -727,34 +693,33 @@ def swing_3(data):
     return fig_buf, current_signals
 
 def main_display():
-    st.header(f"{symbol} ({interval})")
+    st.header(f"{symbol} ({interval}) Analysis")
     
-    if live_update and not st.session_state.session_info['sse_client']:
-        st.session_state.session_info['sse_client'] = SSEClient(api_key, symbol, interval, lookback)
-        st.session_state.session_info['sse_client'].start()
+    if live_update and st.session_state.sse_client is None:
+        st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
+        st.session_state.sse_client.start()
     
     if live_update:
-        update = st.session_state.session_info['sse_client'].get_update()
+        update = st.session_state.sse_client.get_update()
         if update:
-            st.session_state.session_info['last_data'] = update_data_with_sse(
-                st.session_state.session_info['last_data'],
+            st.session_state.last_data = update_data_with_sse(
+                st.session_state.last_data,
                 update
             )
-        data = st.session_state.session_info['last_data'] if st.session_state.session_info['last_data'] is not None else load_initial_data(symbol, interval, lookback, api_key)
+        data = st.session_state.last_data if st.session_state.last_data is not None else load_initial_data(symbol, interval, lookback, api_key)
     else:
-        if st.session_state.session_info['sse_client'] is not None:
-            st.session_state.session_info['sse_client'].stop()
-            st.session_state.session_info['sse_client'] = None
+        if st.session_state.sse_client is not None:
+            st.session_state.sse_client.stop()
+            st.session_state.sse_client = None
         
         data = load_initial_data(symbol, interval, lookback, api_key)
-        st.session_state.session_info['last_data'] = data
+        st.session_state.last_data = data
     
     if data.empty:
         st.warning("No data available - check your API key and symbol")
         return
     
-    if page == "Swing 3":
-        fig_buf, current_signals = swing_3(data)
+    fig_buf, current_signals = swing_3(data)
     
     st.image(fig_buf, use_column_width=True)
     
@@ -765,13 +730,12 @@ def main_display():
                 for ts in timestamps:
                     trigger_alert(signal_type, data.loc[ts, 'Close'], ts)
     
-    st.session_state.session_info['previous_signals'] = current_signals
+    st.session_state.previous_signals = current_signals
     
     st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
     
-    st.sidebar.title("Alert History")
-    with st.sidebar.container():
-        for alert in reversed(st.session_state.session_info['alert_history'][-10:]):
+    with st.sidebar.expander("Recent Alerts", expanded=True):
+        for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
             cols[0].write(alert['timestamp'].strftime('%H:%M:%S'))
             
@@ -784,6 +748,7 @@ def main_display():
                 
             cols[2].write(f"{alert['price']:.4f}")
 
+# Run the app
 placeholder = st.empty()
 
 while True:
