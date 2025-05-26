@@ -369,7 +369,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 25  # Very wide
+    width = 20  # Very wide
     height = 10 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=120)
@@ -441,13 +441,13 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
-                          linewidth=2.5,
+                          linewidth=4.0,
                           alpha=1.0,
                           solid_capstyle='round',
                           label='RSI 10' if i == 1 else "")
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
-                       linewidth=2.0,
+                       linewidth=4.0,
                        alpha=1.0,
                        label='RSI 22')
 
@@ -476,7 +476,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
                        color='darkorange',
-                       linewidth=2.5,
+                       linewidth=4.5,
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Fisher Transform')
@@ -484,20 +484,20 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=26,
+                           fontsize=32,
                            fontweight='bold',
                            pad=15)
-    axes[plot_idx].legend(loc='upper left', fontsize=18)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Bias'],
                        color='gray',
-                       linewidth=2.0,
+                       linewidth=4.0,
                        alpha=0.7,
                        label='Raw Bias')
     axes[plot_idx].plot(data.index, data['Bias_Smoothed'],
                        color='purple',
-                       linewidth=2.5,
+                       linewidth=4.5,
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Smoothed Bias')
@@ -515,7 +515,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    axes[plot_idx].legend(loc='upper left', fontsize=18)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
@@ -534,17 +534,17 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     strong_bearish = data['Divergence_Score'] <= -3
     axes[plot_idx].scatter(data.index[strong_bullish], data['Divergence_Score'][strong_bullish],
                          color='lime', marker='o', s=100,
-                         edgecolor='black', linewidth=1.5,
+                         edgecolor='black', linewidth=2.5,
                          label='Strong Bullish')
     axes[plot_idx].scatter(data.index[strong_bearish], data['Divergence_Score'][strong_bearish],
                          color='darkred', marker='o', s=100,
-                         edgecolor='black', linewidth=1.5,
+                         edgecolor='black', linewidth=2.5,
                          label='Strong Bearish')
-    axes[plot_idx].set_title('DIVERGENCE SCORE',
-                           fontsize=26,
+    axes[plot_idx].set_title('ASYMMETRIC SCORE',
+                           fontsize=32,
                            fontweight='bold',
                            pad=15)
-    axes[plot_idx].legend(loc='upper left', fontsize=18)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
 
     fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
     fig.subplots_adjust(top=0.94, right=0.95)
