@@ -158,7 +158,7 @@ st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
-st.subheader("TIMETION 0.2 - Financial Market Modelling")
+st.subheader("VAPS 0.2 - Financial Market Modelling")
 
 st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Learning for Market Dynamics.**")
 
@@ -540,7 +540,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                          color='darkred', marker='o', s=100,
                          edgecolor='black', linewidth=2.5,
                          label='Strong Bearish')
-    axes[plot_idx].set_title('ASYMMETRIC SCORE',
+    axes[plot_idx].set_title('ANTI-SYMMETRIC BIDIVERGENCE SCORE',
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
