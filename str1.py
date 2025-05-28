@@ -343,13 +343,13 @@ def check_for_new_signals(current_signals):
 
 def trigger_alert(alert_type, price, timestamp):
     if alert_type == "Bullish Divergence":
-        st.toast(f"🚨 BULLISH DIVERGENCE at {price:.4f}", icon="📈")
-        st.sidebar.success(f"Bullish divergence at {price:.4f}")
+        st.toast(f"🚨 BULLISH at {price:.4f}", icon="📈")
+        st.sidebar.success(f"Bullish at {price:.4f}")
     elif alert_type == "Bearish Divergence":
-        st.toast(f"🚨 BEARISH DIVERGENCE at {price:.4f}", icon="📉")
-        st.sidebar.error(f"Bearish divergence at {price:.4f}")
+        st.toast(f"🚨 BEARISH at {price:.4f}", icon="📉")
+        st.sidebar.error(f"Bearish at {price:.4f}")
     elif alert_type == "RSI Crossover":
-        st.toast(f"⚠️ RSI CROSSOVER at {price:.4f}", icon="🔔")
+        st.toast(f"⚠️ New strength at {price:.4f}", icon="🔔")
         st.sidebar.warning(f"RSI crossover at {price:.4f}")
     
     if alert_sound:
