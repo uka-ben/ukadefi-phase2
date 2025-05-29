@@ -370,7 +370,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 33  # Very wide
+    width = 30  # Very wide
     height = 11 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=150)
@@ -383,7 +383,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for ax in axes:
         ax.tick_params(axis='both', which='major',
                       labelsize=32, width=4, length=8, pad=8)
-        ax.tick_params(axis='both', which='major', labelsize=40)
+        ax.tick_params(axis='both', which='major', labelsize=32)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
