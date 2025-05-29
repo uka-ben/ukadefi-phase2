@@ -165,9 +165,10 @@ st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Le
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
-    symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
+    symbol = st.selectbox("Symbol", ["ADA", "BTC", "ETH", "IOTX", "SOL", "XRP", "BNB", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "PEOPLE", "XLM", "ALGO", "XAU", "EUR", "GBP"])
+    #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
-    interval = st.selectbox("Interval", ["1min","5min", "15min", "1h", "4h", "1day", "1week", "1month"])
+    interval = st.selectbox("Interval", ["15min","1min", "5min", "1h", "4h", "1day", "1week", "1month"])
 with col3:
     market_type = st.selectbox("Market Type", ["Forex", "Crypto", "Stock"], index=0)
 
@@ -391,7 +392,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
             item.set_fontstyle('normal')
 
         ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
-        ax.spines['left'].set_linewidth(2)
+        ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_linewidth(2)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
