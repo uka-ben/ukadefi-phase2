@@ -160,7 +160,7 @@ st.image(image1)
 st.markdown(" ")
 st.subheader("VAPS 0.2 - Financial Market Modelling")
 
-st.markdown("**A Financial AI System Based on Symmetric-Antisymmetric Pattern Learning for Market Dynamics.**")
+st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.**")
 
 # Input controls
 col1, col2, col3 = st.columns(3)
