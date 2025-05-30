@@ -95,7 +95,7 @@ def play_alert_sound(alert_type="neutral"):
         "bearish": "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav",
         "neutral": "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav"
     }.get(alert_type.lower(), "https://github.com/uka-ben/Sounder/raw/c2b3f81a8b704924eeb69efa668f805576740e34/alert1.wav")
-    
+
     audio_html = f"""
     <audio autoplay>
         <source src="{sound_url}?v={time.time()}" type="audio/wav">
@@ -114,27 +114,27 @@ class SSEClient:
         self.running = False
         self.thread = None
         self.last_data = None
-        
+
     def start(self):
         self.running = True
         self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
-        
+
     def stop(self):
         self.running = False
         if self.thread:
             self.thread.join()
-            
+
     def _run(self):
         url = f"https://api.twelvedata.com/timeseries?apikey={self.api_key}&symbol={self.symbol}/USD&type=etf&timezone=Africa/Lagos&interval={self.interval}"
         headers = {'Accept-Encoding': 'br'}
-        
+
         try:
             with requests.get(url, stream=True, headers=headers) as response:
                 for line in response.iter_lines():
                     if not self.running:
                         break
-                        
+
                     if line:
                         try:
                             event_data = json.loads(line.decode('utf-8'))
@@ -145,7 +145,7 @@ class SSEClient:
                             continue
         except Exception as e:
             st.error(f"SSE Error: {str(e)}")
-            
+
     def get_update(self):
         try:
             compressed = self.event_queue.get_nowait()
@@ -276,17 +276,17 @@ def load_initial_data(symbol, interval, lookback, api_key):
         url = f"https://api.twelvedata.com/time_series?apikey={api_key}&interval={interval}&symbol={symbol}/USD&type=etf&timezone=Africa/Lagos&outputsize={lookback}"
         headers = {'Accept-Encoding': 'br'}
         response = requests.get(url, headers=headers)
-        
+
         if response.status_code != 200:
             st.error(f"API Error: {response.status_code}")
             return pd.DataFrame()
-            
+
         data = response.json()
-        
+
         if 'values' not in data:
             st.error(f"API Error: {data.get('message', 'Unknown error')}")
             return pd.DataFrame()
-            
+
         df = pd.DataFrame(data['values'])
         df = df.rename(columns={
             'datetime': 'Date', 
@@ -296,7 +296,7 @@ def load_initial_data(symbol, interval, lookback, api_key):
             'low': 'Low',
             'volume': 'Volume'
         })
-        
+
         df['Date'] = pd.to_datetime(df['Date'])
         numeric_cols = df.columns.drop('Date')
         df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
@@ -304,7 +304,7 @@ def load_initial_data(symbol, interval, lookback, api_key):
         df = df.iloc[-lookback:]
         df.index = df['Date']
         return df
-        
+
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
         return pd.DataFrame()
@@ -312,7 +312,7 @@ def load_initial_data(symbol, interval, lookback, api_key):
 def update_data_with_sse(prev_data, new_data_point):
     if prev_data is None or prev_data.empty:
         return pd.DataFrame()
-    
+
     new_row = pd.DataFrame([{
         'Date': pd.to_datetime(new_data_point['timestamp']),
         'Open': float(new_data_point['open']),
@@ -321,12 +321,12 @@ def update_data_with_sse(prev_data, new_data_point):
         'Close': float(new_data_point['close']),
         'Volume': float(new_data_point.get('volume', 0))
     }])
-    
+
     updated = pd.concat([prev_data, new_row]).drop_duplicates(subset=['Date'], keep='last')
-    
+
     if len(updated) > lookback:
         updated = updated.iloc[-lookback:]
-    
+
     updated.index = updated['Date']
     return updated
 
@@ -335,11 +335,11 @@ def check_for_new_signals(current_signals):
     for signal_type in current_signals:
         previous = st.session_state.previous_signals.get(signal_type, [])
         current = current_signals.get(signal_type, [])
-        
+
         new = [s for s in current if s not in previous]
         if new:
             new_signals[signal_type] = new
-            
+
     return new_signals
 
 def trigger_alert(alert_type, price, timestamp):
@@ -352,18 +352,18 @@ def trigger_alert(alert_type, price, timestamp):
     elif alert_type == "RSI Crossover":
         st.toast(f"⚠️ New strength at {price:.4f}", icon="🔔")
         st.sidebar.warning(f"RSI crossover at {price:.4f}")
-    
+
     if alert_sound:
         sound_type = "bullish" if "Bullish" in alert_type else "bearish" if "Bearish" in alert_type else "neutral"
         play_alert_sound(sound_type)
-    
+
     st.session_state.alert_history.append({
         "timestamp": timestamp,
         "type": alert_type,
         "price": price,
         "symbol": symbol
     })
-    
+
     st.session_state.alert_history = st.session_state.alert_history[-50:]
 
 def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market_type):
@@ -372,7 +372,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     width = 30  # Very wide
     height = 11 * num_plots  # Tall
-    
+
     fig = Figure(figsize=(width, height), dpi=70)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[10] + [5]*len(visible_indicators))
 
@@ -510,7 +510,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                               where=data['Bias_Smoothed'] >= 0.2,
                               facecolor='green', alpha=0.3, interpolate=True)
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], -0.2,
-                              where=data['Bias_Smoothed'] <= -0.2,
+                              where(data['Bias_Smoothed'] <= -0.2),
                               facecolor='red', alpha=0.3, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
                            fontsize=26,
@@ -558,9 +558,9 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 def swing_3(data):
     if data.empty:
         return plt.figure(), {}
-    
+
     data = data.copy()
-    
+
     # Compute indicators
     data['RSI_14'] = compute_rsi(data['Close'])
     data['RSI_10'] = compute_rsi(data['Low'], period=9)
@@ -684,26 +684,26 @@ def swing_3(data):
             rsi_10_colors.append('gray')
 
     fig_buf = create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market_type)
-    
+
     current_signals = {
         "Bullish Divergence": data.index[data['Confirmed_Divergence'] == 1].tolist(),
         "Bearish Divergence": data.index[data['Confirmed_Divergence'] == -1].tolist(),
         "RSI Crossover": []
     }
-    
+
     crossover_up = (data['RSI_10'] > data['RSI_22']) & (data['RSI_10'].shift(1) <= data['RSI_22'].shift(1))
     crossover_down = (data['RSI_10'] < data['RSI_22']) & (data['RSI_10'].shift(1) >= data['RSI_22'].shift(1))
     current_signals["RSI Crossover"] = data.index[crossover_up | crossover_down].tolist()
-    
+
     return fig_buf, current_signals
 
 def main_display():
     st.header(f"{symbol} ({interval}) Analysis")
-    
+
     if live_update and st.session_state.sse_client is None:
         st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
         st.session_state.sse_client.start()
-    
+
     if live_update:
         update = st.session_state.sse_client.get_update()
         if update:
@@ -716,41 +716,41 @@ def main_display():
         if st.session_state.sse_client is not None:
             st.session_state.sse_client.stop()
             st.session_state.sse_client = None
-        
+
         data = load_initial_data(symbol, interval, lookback, api_key)
         st.session_state.last_data = data
-    
+
     if data.empty:
         st.warning("No data available - check your API key and symbol")
         return
-    
+
     fig_buf, current_signals = swing_3(data)
-    
-    st.image(fig_buf, use_column_width=True)
-    
+
+    st.image(fig_buf, use_container_width=True)  # Updated parameter here
+
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
         for signal_type, timestamps in new_signals.items():
             if signal_type in alert_types:
                 for ts in timestamps:
                     trigger_alert(signal_type, data.loc[ts, 'Close'], ts)
-    
+
     st.session_state.previous_signals = current_signals
-    
+
     st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
-    
+
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
             cols[0].write(alert['timestamp'].strftime('%H:%M:%S'))
-            
+
             if alert['type'] == "Bullish Divergence":
                 cols[1].success(alert['type'])
             elif alert['type'] == "Bearish Divergence":
                 cols[1].error(alert['type'])
             else:
                 cols[1].warning(alert['type'])
-                
+
             cols[2].write(f"{alert['price']:.4f}")
 
 # Run the app
@@ -759,10 +759,10 @@ placeholder = st.empty()
 while True:
     with placeholder.container():
         main_display()
-    
+
     if not live_update:
         st.stop()
-    
+
     time.sleep(max(update_interval, 15))
 
 if __name__ == "__main__":
