@@ -168,7 +168,7 @@ with col1:
     symbol = st.selectbox("Symbol", ["ADA", "BTC", "ETH", "IOTX", "SOL", "XRP", "BNB", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "PEOPLE", "XLM", "ALGO", "XAU", "EUR", "GBP"])
     #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
-    interval = st.selectbox("Interval", ["15min","1min", "5min", "1h", "4h", "1day", "1week", "1month"])
+    interval = st.selectbox("Interval", ["1h", "15min","1min", "5min", "4h", "1day", "1week", "1month"])
 with col3:
     market_type = st.selectbox("Market Type", ["Forex", "Crypto", "Stock"], index=0)
 
