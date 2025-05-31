@@ -3,11 +3,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-import aiohttp
-import asyncio
+import requests
 from scipy.signal import argrelextrema
+import time  
 from datetime import datetime
 import brotli
+import threading
 import queue
 import json
 from PIL import Image
@@ -64,6 +65,7 @@ body {
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
+
 # API Configuration
 api_key = "cef197ce3e054ee69d6c795401b229cd"
 
@@ -101,33 +103,35 @@ def play_alert_sound(alert_type="neutral"):
     """
     st.components.v1.html(audio_html, height=0)
 
-# Async SSE Client implementation
-class AsyncSSEClient:
+# SSE Client implementation
+class SSEClient:
     def __init__(self, api_key, symbol, interval, lookback):
         self.api_key = api_key
         self.symbol = symbol
         self.interval = interval
         self.lookback = lookback
-        self.event_queue = asyncio.Queue()
+        self.event_queue = queue.Queue()
         self.running = False
-        self.session = None
+        self.thread = None
+        self.last_data = None
 
-    async def start(self):
+    def start(self):
         self.running = True
-        self.session = aiohttp.ClientSession()
-        asyncio.create_task(self._run())
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
 
-    async def stop(self):
+    def stop(self):
         self.running = False
-        if self.session:
-            await self.session.close()
+        if self.thread:
+            self.thread.join()
 
-    async def _run(self):
+    def _run(self):
         url = f"https://api.twelvedata.com/timeseries?apikey={self.api_key}&symbol={self.symbol}/USD&type=etf&timezone=Africa/Lagos&interval={self.interval}"
-        
+        headers = {'Accept-Encoding': 'br'}
+
         try:
-            async with self.session.get(url, headers={'Accept-Encoding': 'br'}) as response:
-                async for line in response.content:
+            with requests.get(url, stream=True, headers=headers) as response:
+                for line in response.iter_lines():
                     if not self.running:
                         break
 
@@ -136,17 +140,17 @@ class AsyncSSEClient:
                             event_data = json.loads(line.decode('utf-8'))
                             if 'event' in event_data and event_data['event'] == 'price':
                                 compressed = compress_data(event_data)
-                                await self.event_queue.put(compressed)
+                                self.event_queue.put(compressed)
                         except json.JSONDecodeError:
                             continue
         except Exception as e:
             st.error(f"SSE Error: {str(e)}")
 
-    async def get_update(self):
+    def get_update(self):
         try:
-            compressed = await self.event_queue.get()
+            compressed = self.event_queue.get_nowait()
             return decompress_data(compressed)
-        except asyncio.QueueEmpty:
+        except queue.Empty:
             return None
 
 # App header and info
@@ -155,12 +159,14 @@ image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
 st.subheader("VAPS 0.2 - Financial Market Modelling")
+
 st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.**")
 
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
     symbol = st.selectbox("Symbol", ["ADA", "BTC", "ETH", "IOTX", "SOL", "XRP", "BNB", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "PEOPLE", "XLM", "ALGO", "XAU", "EUR", "GBP"])
+    #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
     interval = st.selectbox("Interval", ["1h", "15min","1min", "5min", "4h", "1day", "1week", "1month"])
 with col3:
@@ -194,7 +200,7 @@ if 'initialized' not in st.session_state:
     st.session_state.sse_client = None
     st.session_state.last_data = None
 
-# Technical indicator functions (same as before)
+# Technical indicator functions
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(window=period).mean()
@@ -263,47 +269,47 @@ def find_extrema(series, order=70):
     minima = argrelextrema(series.values, np.less, order=order)[0]
     return maxima, minima
 
-# Async data loading functions
+# Data loading functions
 @st.cache_data(ttl=60, show_spinner="Fetching market data...")
-async def load_initial_data(symbol, interval, lookback, api_key):
+def load_initial_data(symbol, interval, lookback, api_key):
     try:
         url = f"https://api.twelvedata.com/time_series?apikey={api_key}&interval={interval}&symbol={symbol}/USD&type=etf&timezone=Africa/Lagos&outputsize={lookback}"
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers={'Accept-Encoding': 'br'}) as response:
-                if response.status != 200:
-                    st.error(f"API Error: {response.status}")
-                    return pd.DataFrame()
+        headers = {'Accept-Encoding': 'br'}
+        response = requests.get(url, headers=headers)
 
-                data = await response.json()
+        if response.status_code != 200:
+            st.error(f"API Error: {response.status_code}")
+            return pd.DataFrame()
 
-                if 'values' not in data:
-                    st.error(f"API Error: {data.get('message', 'Unknown error')}")
-                    return pd.DataFrame()
+        data = response.json()
 
-                df = pd.DataFrame(data['values'])
-                df = df.rename(columns={
-                    'datetime': 'Date', 
-                    'open': 'Open', 
-                    'close': 'Close',
-                    'high': 'High', 
-                    'low': 'Low',
-                    'volume': 'Volume'
-                })
+        if 'values' not in data:
+            st.error(f"API Error: {data.get('message', 'Unknown error')}")
+            return pd.DataFrame()
 
-                df['Date'] = pd.to_datetime(df['Date'])
-                numeric_cols = df.columns.drop('Date')
-                df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
-                df = df.sort_values('Date').reset_index(drop=True)
-                df = df.iloc[-lookback:]
-                df.index = df['Date']
-                return df
+        df = pd.DataFrame(data['values'])
+        df = df.rename(columns={
+            'datetime': 'Date', 
+            'open': 'Open', 
+            'close': 'Close',
+            'high': 'High', 
+            'low': 'Low',
+            'volume': 'Volume'
+        })
+
+        df['Date'] = pd.to_datetime(df['Date'])
+        numeric_cols = df.columns.drop('Date')
+        df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
+        df = df.sort_values('Date').reset_index(drop=True)
+        df = df.iloc[-lookback:]
+        df.index = df['Date']
+        return df
 
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
         return pd.DataFrame()
 
-async def update_data_with_sse(prev_data, new_data_point):
+def update_data_with_sse(prev_data, new_data_point):
     if prev_data is None or prev_data.empty:
         return pd.DataFrame()
 
@@ -364,8 +370,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 30
-    height = 11 * num_plots
+    width = 30  # Very wide
+    height = 11 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[10] + [5]*len(visible_indicators))
@@ -428,6 +434,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=32,
                      fontweight='bold',
                      pad=20)
+    #axes[0].legend(loc='upper left', fontsize=18)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
 
     plot_idx = 1
@@ -465,6 +472,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
@@ -480,6 +488,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Bias'],
@@ -507,6 +516,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
@@ -535,6 +545,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
+    #axes[plot_idx].legend(loc='upper left', fontsize=18)
 
     fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
     fig.subplots_adjust(top=0.94, right=0.95)
@@ -686,27 +697,27 @@ def swing_3(data):
 
     return fig_buf, current_signals
 
-async def main_display():
+def main_display():
     st.header(f"{symbol} ({interval}) Analysis")
 
     if live_update and st.session_state.sse_client is None:
-        st.session_state.sse_client = AsyncSSEClient(api_key, symbol, interval, lookback)
-        await st.session_state.sse_client.start()
+        st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
+        st.session_state.sse_client.start()
 
     if live_update:
-        update = await st.session_state.sse_client.get_update()
+        update = st.session_state.sse_client.get_update()
         if update:
-            st.session_state.last_data = await update_data_with_sse(
+            st.session_state.last_data = update_data_with_sse(
                 st.session_state.last_data,
                 update
             )
-        data = st.session_state.last_data if st.session_state.last_data is not None else await load_initial_data(symbol, interval, lookback, api_key)
+        data = st.session_state.last_data if st.session_state.last_data is not None else load_initial_data(symbol, interval, lookback, api_key)
     else:
         if st.session_state.sse_client is not None:
-            await st.session_state.sse_client.stop()
+            st.session_state.sse_client.stop()
             st.session_state.sse_client = None
 
-        data = await load_initial_data(symbol, interval, lookback, api_key)
+        data = load_initial_data(symbol, interval, lookback, api_key)
         st.session_state.last_data = data
 
     if data.empty:
@@ -742,17 +753,18 @@ async def main_display():
 
             cols[2].write(f"{alert['price']:.4f}")
 
-async def run_app():
-    placeholder = st.empty()
-    
-    while True:
-        with placeholder.container():
-            await main_display()
-        
-        if not live_update:
-            break
-            
-        await asyncio.sleep(max(update_interval, 15))
+# Run the app
+placeholder = st.empty()
+
+while True:
+    with placeholder.container():
+        main_display()
+
+    if not live_update:
+        st.stop()
+
+    time.sleep(max(update_interval, 15))
 
 if __name__ == "__main__":
-    asyncio.run(run_app())
+    main_display()
+
