@@ -510,7 +510,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                               where=data['Bias_Smoothed'] >= 0.2,
                               facecolor='green', alpha=0.3, interpolate=True)
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], -0.2,
-                              where(data['Bias_Smoothed'] <= -0.2),
+                              where=data['Bias_Smoothed'] <= -0.2,
                               facecolor='red', alpha=0.3, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
                            fontsize=26,
@@ -726,7 +726,7 @@ def main_display():
 
     fig_buf, current_signals = swing_3(data)
 
-    st.image(fig_buf, use_container_width=True)  # Updated parameter here
+    st.image(fig_buf, use_container_width=True)
 
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
