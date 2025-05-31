@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import requests
 from scipy.signal import argrelextrema
-import time  
+import time
 from datetime import datetime
 import brotli
 import threading
@@ -166,7 +166,6 @@ st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthe
 col1, col2, col3 = st.columns(3)
 with col1:
     symbol = st.selectbox("Symbol", ["ADA", "BTC", "ETH", "IOTX", "SOL", "XRP", "BNB", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "PEOPLE", "XLM", "ALGO", "XAU", "EUR", "GBP"])
-    #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
     interval = st.selectbox("Interval", ["1h", "15min","1min", "5min", "4h", "1day", "1week", "1month"])
 with col3:
@@ -199,6 +198,7 @@ if 'initialized' not in st.session_state:
     st.session_state.alert_history = []
     st.session_state.sse_client = None
     st.session_state.last_data = None
+    st.session_state.last_update_time = 0
 
 # Technical indicator functions
 def compute_rsi(series, period=14):
@@ -434,7 +434,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=32,
                      fontweight='bold',
                      pad=20)
-    #axes[0].legend(loc='upper left', fontsize=18)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
 
     plot_idx = 1
@@ -446,13 +445,14 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                           alpha=1.0,
                           solid_capstyle='round',
                           label='RSI 10' if i == 1 else "")
+    axes[plot极
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
                        linewidth=4.0,
                        alpha=1.0,
                        label='RSI 22')
 
-    current_rsi = data['RSI_10'].iloc[-1]
+    current_rsi = data['RSI_10'].il极[-1]
     axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=4.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
                           xy=(0.98, current_rsi),
@@ -472,7 +472,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
@@ -483,12 +482,11 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                        label='Fisher Transform')
     axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
     axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0,极width=1.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Bias'],
@@ -516,7 +514,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
@@ -545,7 +542,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
 
     fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
     fig.subplots_adjust(top=0.94, right=0.95)
@@ -580,7 +576,7 @@ def swing_3(data):
     data['DIV_RSI'] = np.where(
         (data.index.isin(data.index[maxima])) & (data['RSI_14'].diff() > -1) & (data['RSI_14'] > 50), -50,
         np.where((data.index.isin(data.index[minima])) & (data['RSI_14'].diff() < 1) & (data['RSI_14'] < 50), 2, 0))
-    data['DIV_MACD'] = np.where(
+    data['D极_MACD'] = np.where(
         (data.index.isin(data.index[maxima])) & (data['MACD'].diff() > -0.1) & (data['MACD'] > 0), -50,
         np.where((data.index.isin(data.index[minima])) & (data['MACD'].diff() < 0.1) & (data['MACD'] < 0), 2, 0))
     data['DIV_KDJ'] = np.where(
@@ -700,23 +696,26 @@ def swing_3(data):
 def main_display():
     st.header(f"{symbol} ({interval}) Analysis")
 
-    if live_update and st.session_state.sse_client is None:
-        st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
-        st.session_state.sse_client.start()
-
+    # Initialize SSE client
     if live_update:
+        if st.session_state.sse_client is None:
+            st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
+            st.session_state.sse_client.start()
+        
+        # Get SSE updates
         update = st.session_state.sse_client.get_update()
         if update:
             st.session_state.last_data = update_data_with_sse(
                 st.session_state.last_data,
                 update
             )
+            
         data = st.session_state.last_data if st.session_state.last_data is not None else load_initial_data(symbol, interval, lookback, api_key)
     else:
         if st.session_state.sse_client is not None:
             st.session_state.sse_client.stop()
             st.session_state.sse_client = None
-
+            
         data = load_initial_data(symbol, interval, lookback, api_key)
         st.session_state.last_data = data
 
@@ -725,9 +724,9 @@ def main_display():
         return
 
     fig_buf, current_signals = swing_3(data)
-
     st.image(fig_buf, use_container_width=True)
 
+    # Handle alerts
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
         for signal_type, timestamps in new_signals.items():
@@ -737,8 +736,10 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
+    # Display last update time
     st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
 
+    # Display recent alerts
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
@@ -753,18 +754,21 @@ def main_display():
 
             cols[2].write(f"{alert['price']:.4f}")
 
+    # Auto-refresh for live updates
+    if live_update:
+        current_time = time.time()
+        if current_time - st.session_state.last_update_time > update_interval:
+            st.session_state.last_update_time = current_time
+            st.experimental_rerun()
+
 # Run the app
-placeholder = st.empty()
-
-while True:
-    with placeholder.container():
-        main_display()
-
-    if not live_update:
-        st.stop()
-
-    time.sleep(max(update_interval, 15))
-
 if __name__ == "__main__":
     main_display()
-
+    
+    # Add a manual refresh button
+    if st.button("Refresh Data"):
+        st.session_state.last_data = None
+        if st.session_state.sse_client:
+            st.session_state.sse_client.stop()
+            st.session_state.sse_client = None
+        st.experimental_rerun()
