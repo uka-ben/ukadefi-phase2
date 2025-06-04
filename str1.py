@@ -165,7 +165,7 @@ st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthe
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
-    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "XAG", "EUR", "GBP", "AUD"])
+    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
     #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
     interval = st.selectbox("Interval", ["15min","1min", "5min", "30min", "1h",  "4h", "1day", "1week", "1month"])
@@ -374,7 +374,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     height = 11 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[10] + [5]*len(visible_indicators))
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[12] + [5]*len(visible_indicators))
 
     axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
