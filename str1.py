@@ -737,7 +737,7 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
-    st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
+    st.caption(f"Last update (0:0utc : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
 
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
