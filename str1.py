@@ -65,7 +65,6 @@ body {
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
-
 # API Configuration
 api_key = "cef197ce3e054ee69d6c795401b229cd"
 
@@ -166,7 +165,6 @@ st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthe
 col1, col2, col3 = st.columns(3)
 with col1:
     symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
-    #symbol = st.text_input("Symbol (EUR,BTC,ETH,AAPL,etc)", "EUR").upper()
 with col2:
     interval = st.selectbox("Interval", ["15min","1min", "5min", "30min", "1h",  "4h", "1day", "1week", "1month"])
 with col3:
@@ -177,6 +175,11 @@ st.sidebar.title("Controls")
 live_update = st.sidebar.checkbox("Live Update", True)
 lookback = st.sidebar.slider("Lookback Period (bars)", 50, 1000, 300)
 update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
+
+# Add refresh button
+if st.sidebar.button("🔄 Manual Refresh"):
+    st.session_state.force_refresh = True
+    st.rerun()
 
 # Alert configuration
 st.sidebar.title("Alert Settings")
@@ -199,6 +202,8 @@ if 'initialized' not in st.session_state:
     st.session_state.alert_history = []
     st.session_state.sse_client = None
     st.session_state.last_data = None
+    st.session_state.force_refresh = False
+    st.session_state.loading = True
 
 # Technical indicator functions
 def compute_rsi(series, period=14):
@@ -434,7 +439,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=32,
                      fontweight='bold',
                      pad=20)
-    #axes[0].legend(loc='upper left', fontsize=18)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
 
     plot_idx = 1
@@ -472,7 +476,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
@@ -488,7 +491,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     axes[plot_idx].plot(data.index, data['Bias'],
@@ -516,7 +518,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=26,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
     plot_idx += 1
 
     bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
@@ -545,7 +546,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=32,
                            fontweight='bold',
                            pad=15)
-    #axes[plot_idx].legend(loc='upper left', fontsize=18)
 
     fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
     fig.subplots_adjust(top=0.94, right=0.95)
@@ -724,9 +724,18 @@ def main_display():
         st.warning("No data available - check your API key and symbol")
         return
 
-    fig_buf, current_signals = swing_3(data)
+    # Show loading message while processing
+    if st.session_state.loading:
+        with st.spinner("Please wait, the anti-symmetric synthesizer is working..."):
+            fig_buf, current_signals = swing_3(data)
+            st.session_state.loading = False
+    else:
+        fig_buf, current_signals = swing_3(data)
 
-    st.image(fig_buf, use_container_width=True)
+    # Use a container to prevent flickering
+    chart_container = st.empty()
+    with chart_container.container():
+        st.image(fig_buf, use_container_width=True)
 
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
@@ -737,7 +746,7 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
-    st.caption(f"Last update (0:0utc : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
+    st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
 
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
@@ -754,17 +763,20 @@ def main_display():
             cols[2].write(f"{alert['price']:.4f}")
 
 # Run the app
-placeholder = st.empty()
-
-while True:
-    with placeholder.container():
-        main_display()
-
-    if not live_update:
-        st.stop()
-
-    time.sleep(max(update_interval, 30))
-
 if __name__ == "__main__":
-    main_display()
+    placeholder = st.empty()
+    
+    while True:
+        with placeholder.container():
+            main_display()
+            
+            # Reset force refresh flag after processing
+            if st.session_state.get('force_refresh', False):
+                st.session_state.force_refresh = False
+                st.session_state.loading = True
+                st.rerun()
 
+        if not live_update:
+            break
+
+        time.sleep(max(update_interval, 30))
