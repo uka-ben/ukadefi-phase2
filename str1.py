@@ -82,6 +82,9 @@ body {
 .stCaption {
     font-size: 1.3rem !important;
 }
+.alert-text {
+    font-size: 1.2rem !important;
+}
 </style>
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
@@ -792,11 +795,11 @@ def main_display():
             cols[0].markdown(f"<p style='font-size: 1.2rem;'>{alert['timestamp'].strftime('%H:%M:%S')}</p>", unsafe_allow_html=True)
 
             if alert['type'] == "Bullish Divergence":
-                cols[1].success(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].markdown(f"<p class='alert-text' style='color: green;'>Bullish Divergence</p>", unsafe_allow_html=True)
             elif alert['type'] == "Bearish Divergence":
-                cols[1].error(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].markdown(f"<p class='alert-text' style='color: red;'>Bearish Divergence</p>", unsafe_allow_html=True)
             else:
-                cols[1].warning(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].markdown(f"<p class='alert-text' style='color: orange;'>RSI Crossover</p>", unsafe_allow_html=True)
 
             cols[2].markdown(f"<p style='font-size: 1.2rem;'>{alert['price']:.4f}</p>", unsafe_allow_html=True)
 
