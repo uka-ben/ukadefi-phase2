@@ -164,7 +164,7 @@ st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthe
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
-    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
+    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE","ENJ","NEAR","VTHO","TRUMP",JST","ETC",STX",MBOX","SAND",UNI","DYDX","CHESS","GAS","1NCH",XRUNE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
 with col2:
     interval = st.selectbox("Interval", ["15min","1min", "5min", "30min", "1h",  "4h", "1day", "1week", "1month"])
 with col3:
