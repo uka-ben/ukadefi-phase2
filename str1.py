@@ -411,7 +411,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=10.0,
+                    linewidth=5.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
@@ -426,7 +426,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                    edgecolor='black', linewidth=10,
                    label='Bearish Div')
 
-    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=5.0)
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1.0)
     axes[0].text(0.5, 1.7, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
