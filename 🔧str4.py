@@ -417,20 +417,20 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=200,
-                   edgecolor='black', linewidth=2,
+                   color='green', marker='^', s=400,
+                   edgecolor='black', linewidth=8,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=200,
-                   edgecolor='black', linewidth=2,
+                   color='red', marker='v', s=400,
+                   edgecolor='black', linewidth=8,
                    label='Bearish Div')
 
     axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
-    axes[0].text(0.02, 0.95, f'{current_price:.5f} ({current_time})',
+    axes[0].text(0.09, 1.10, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=36,
+                fontsize=70,
                 fontweight='bold',
                 va='top',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
@@ -439,39 +439,39 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=32,
                      fontweight='bold',
                      pad=20)
-    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
+    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=8.5)
 
     plot_idx = 1
 
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
-                          linewidth=4.0,
+                          linewidth=8.0,
                           alpha=1.0,
                           solid_capstyle='round',
                           label='RSI 10' if i == 1 else "")
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
-                       linewidth=4.0,
+                       linewidth=8.0,
                        alpha=1.0,
                        label='RSI 22')
 
     current_rsi = data['RSI_10'].iloc[-1]
-    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=4.0)
+    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=10.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
                           xy=(0.98, current_rsi),
                           xycoords=('axes fraction', 'data'),
                           xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=30,
+                          fontsize=70,
                           fontweight='bold',
                           va='center',
                           ha='right',
-                          bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=1, pad=4))
+                          bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=5, pad=4))
 
-    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
+    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
                            fontsize=26,
                            fontweight='bold',
