@@ -376,7 +376,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     num_plots = 1 + len(visible_indicators)
 
     width = 30  # Very wide
-    height = 11 * num_plots  # Tall
+    height = 15 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[16] + [5]*len(visible_indicators))
@@ -387,7 +387,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=42, width=7, length=8, pad=10)
+                      labelsize=42, width=4, length=4, pad=6)
         ax.tick_params(axis='both', which='major', labelsize=42)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
@@ -417,12 +417,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=200,
+                   color='green', marker='^', s=300,
                    edgecolor='black', linewidth=2,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=200,
+                   color='red', marker='v', s=300,
                    edgecolor='black', linewidth=2,
                    label='Bearish Div')
 
