@@ -376,7 +376,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     num_plots = 1 + len(visible_indicators)
 
     width = 45  # Very wide
-    height = 25 * num_plots  # Tall
+    height = 20 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[16] + [5]*len(visible_indicators))
@@ -436,7 +436,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=32,
+                     fontsize=45,
                      fontweight='bold',
                      pad=20)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
