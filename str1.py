@@ -15,6 +15,55 @@ from PIL import Image
 import io
 import base64
 
+# Configure page layout and style
+page_bg_img = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(pink,skyblue, skyblue);
+    color: black;
+}
+[data-testid="stSidebar"] {
+    background: linear-gradient(skyblue, blue) !important;
+    color: black;
+}
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    color: black;
+}
+footer {
+    visibility: hidden;
+}
+header {
+    visibility: hidden;
+}
+body {
+    font-family: "Source Sans Pro", sans-serif;
+}
+.stButton>button {
+    background-color: blue;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    padding: 10px 24px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.stButton>button:hover {
+    background-color: #45a804;
+}
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    color: #2c3e50;
+}
+.stDataFrame {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.stProgress > div > div > div {
+    background-color: #4CAF50;
+}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # API Configuration
 api_key = "cef197ce3e054ee69d6c795401b229cd"
