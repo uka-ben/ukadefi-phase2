@@ -77,9 +77,9 @@ def compress_data(data):
 def decompress_data(compressed_data):
     return json.loads(brotli.decompress(compressed_data).decode('utf-8'))
 
-def compress_image(fig, quality=100):
+def compress_image(fig, quality=80):
     png_buf = io.BytesIO()
-    fig.savefig(png_buf, format='png', dpi=120)
+    fig.savefig(png_buf, format='png', dpi=100)
     png_buf.seek(0)
     img = Image.open(png_buf)
     webp_buf = io.BytesIO()
