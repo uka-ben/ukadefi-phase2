@@ -79,7 +79,7 @@ def decompress_data(compressed_data):
 
 def compress_image(fig, quality=80):
     png_buf = io.BytesIO()
-    fig.savefig(png_buf, format='png', dpi=100)
+    fig.savefig(png_buf, format='png', dpi=70)
     png_buf.seek(0)
     img = Image.open(png_buf)
     webp_buf = io.BytesIO()
@@ -379,7 +379,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     width = 35  # Reduced width to prevent label cutoff
     height = 15 * num_plots  # Tall
     
-    fig = Figure(figsize=(width, height), dpi=70)
+    fig = Figure(figsize=(width, height), dpi=40)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[17] + [5]*len(visible_indicators),
                          left=0.1, right=0.9)  # Added left/right margins
 
@@ -559,7 +559,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            pad=15)
 
     # Adjust layout with more padding
-    fig.tight_layout(pad=4.0, h_pad=3.0, w_pad=2.0)
+    fig.tight_layout(pad=4.0, h_pad=3.0, w_pad=4.0)
     fig.subplots_adjust(top=0.94, right=0.88, left=0.12)  # Adjusted margins
 
     webp_buf = compress_image(fig)
