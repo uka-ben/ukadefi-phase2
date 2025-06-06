@@ -387,8 +387,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=50, width=4, length=4, pad=6)
-        ax.tick_params(axis='both', which='major', labelsize=50)
+                      labelsize=60, width=4, length=4, pad=6)
+        ax.tick_params(axis='both', which='major', labelsize=60)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
@@ -418,12 +418,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
                    color='green', marker='^', s=300,
-                   edgecolor='black', linewidth=2,
+                   edgecolor='black', linewidth=5,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
                    color='red', marker='v', s=300,
-                   edgecolor='black', linewidth=2,
+                   edgecolor='black', linewidth=5,
                    label='Bearish Div')
 
     axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
