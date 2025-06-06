@@ -411,7 +411,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=5.0,
+                    linewidth=10.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
@@ -426,33 +426,33 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                    edgecolor='black', linewidth=10,
                    label='Bearish Div')
 
-    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=1.0)
-    axes[0].text(0.5, 1.7, f'{current_price:.5f} ({current_time})',
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.8, linewidth=5.0)
+    axes[0].text(0.3, .9, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
                 fontsize=50,
                 fontweight='bold',
                 va='top',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=10, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
                      fontsize=100,
                      fontweight='bold',
                      pad=20)
-    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
+    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=8.5)
 
     plot_idx = 1
 
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
-                          linewidth=4.0,
+                          linewidth=10.0,
                           alpha=1.0,
                           solid_capstyle='round',
                           label='RSI 10' if i == 1 else "")
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
-                       linewidth=4.0,
+                       linewidth=10.0,
                        alpha=1.0,
                        label='RSI 22')
 
@@ -464,7 +464,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                           xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=30,
+                          fontsize=70,
                           fontweight='bold',
                           va='center',
                           ha='right',
