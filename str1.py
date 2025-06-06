@@ -387,7 +387,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=42, width=4, length=8, pad=8)
+                      labelsize=42, width=7, length=8, pad=10)
         ax.tick_params(axis='both', which='major', labelsize=42)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
