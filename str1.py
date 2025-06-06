@@ -376,7 +376,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     num_plots = 1 + len(visible_indicators)
 
     # Adjust figure size and layout
-    width = 35  # Reduced width to prevent label cutoff
+    width = 40  # Reduced width to prevent label cutoff
     height = 15 * num_plots  # Tall
     
     fig = Figure(figsize=(width, height), dpi=70)
