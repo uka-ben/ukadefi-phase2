@@ -375,25 +375,28 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 45  # Very wide
+    # Adjust figure size and layout
+    width = 20  # Reduced width to prevent label cutoff
     height = 15 * num_plots  # Tall
-
+    
     fig = Figure(figsize=(width, height), dpi=70)
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[17] + [7]*len(visible_indicators))
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[17] + [7]*len(visible_indicators),
+                         left=0.1, right=0.9)  # Added left/right margins
 
     axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
         axes.append(fig.add_subplot(gs[i], sharex=axes[0]))
 
+    # Adjust label sizes and positions
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=52, width=4, length=8, pad=8)
-        ax.tick_params(axis='both', which='major', labelsize=52)
+                      labelsize=42, width=4, length=8, pad=8)
+        ax.tick_params(axis='both', which='minor', labelsize=36)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(50)
+            item.set_fontsize(40)  # Slightly reduced font size
             item.set_fontstyle('normal')
 
         ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
@@ -402,9 +405,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
+        # Adjust y-axis label position
+        ax.yaxis.set_label_coords(0.92, 0.5)  # Moved labels inward
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
+    # Price plot
     current_price = data['Close'].iloc[-1]
     current_time = data.index[-1].strftime('%H:%M UTC')
 
@@ -415,6 +421,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                     alpha=1.0,
                     solid_capstyle='round')
 
+    # Divergence markers
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
                    color='green', marker='^', s=400,
@@ -426,23 +433,24 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                    edgecolor='black', linewidth=8,
                    label='Bearish Div')
 
+    # Current price line
     axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
     axes[0].text(0.09, 1.10, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=50,
+                fontsize=42,  # Reduced font size
                 fontweight='bold',
                 va='top',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=50,
+                     fontsize=44,  # Reduced font size
                      fontweight='bold',
                      pad=20)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=8.5)
 
+    # RSI plot
     plot_idx = 1
-
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
@@ -464,7 +472,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                           xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=70,
+                          fontsize=50,  # Reduced font size
                           fontweight='bold',
                           va='center',
                           ha='right',
@@ -473,11 +481,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
     axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
-                           fontsize=50,
+                           fontsize=44,  # Reduced font size
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
 
+    # Fisher plot
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
                        color='darkorange',
                        linewidth=4.5,
@@ -488,11 +497,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=50,
+                           fontsize=44,  # Reduced font size
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
 
+    # Bias plot
     axes[plot_idx].plot(data.index, data['Bias'],
                        color='gray',
                        linewidth=4.0,
@@ -515,11 +525,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                               where=data['Bias_Smoothed'] <= -0.2,
                               facecolor='red', alpha=0.3, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
-                           fontsize=50,
+                           fontsize=44,  # Reduced font size
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
 
+    # Divergence score plot
     bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
     axes[plot_idx].bar(data.index, data['Divergence_Score'],
                       color=np.where(data['Divergence_Score'] > 0, 'green', 'red'),
@@ -543,12 +554,13 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                          edgecolor='black', linewidth=2.5,
                          label='Strong Bearish')
     axes[plot_idx].set_title('ANTI-SYMMETRIC BIDIVERGENCE SCORE',
-                           fontsize=50,
+                           fontsize=44,  # Reduced font size
                            fontweight='bold',
                            pad=15)
 
-    fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
-    fig.subplots_adjust(top=0.94, right=0.95)
+    # Adjust layout with more padding
+    fig.tight_layout(pad=4.0, h_pad=3.0, w_pad=2.0)
+    fig.subplots_adjust(top=0.94, right=0.88, left=0.12)  # Adjusted margins
 
     webp_buf = compress_image(fig)
     plt.close(fig)
