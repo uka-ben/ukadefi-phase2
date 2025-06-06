@@ -417,7 +417,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=5.0,
+                    linewidth=10.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
