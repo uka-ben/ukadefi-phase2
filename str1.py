@@ -424,17 +424,17 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     # Divergence markers
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=400,
+                   color='green', marker='^', s=600,
                    edgecolor='black', linewidth=8,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=400,
+                   color='red', marker='v', s=600,
                    edgecolor='black', linewidth=8,
                    label='Bearish Div')
 
     # Current price line
-    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=10.0)
     axes[0].text(0.09, 1.10, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
