@@ -177,7 +177,7 @@ lookback = st.sidebar.slider("Lookback Period (bars)", 50, 1000, 300)
 update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
 
 # Add refresh button
-if st.sidebar.button("🔄 Manual Refresh"):
+if st.button("🔄 Manual Refresh"):
     st.session_state.force_refresh = True
     st.rerun()
 
@@ -376,10 +376,10 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     num_plots = 1 + len(visible_indicators)
 
     width = 40  # Very wide
-    height = 17 * num_plots  # Tall
+    height = 15 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[13] + [5]*len(visible_indicators))
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[15] + [5]*len(visible_indicators))
 
     axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
