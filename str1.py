@@ -478,8 +478,8 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                           ha='right',
                           bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=5, pad=4))
 
-    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
-    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=8.5)
+    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=4.5)
+    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=4.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
                            fontsize=44,  # Reduced font size
                            fontweight='bold',
@@ -493,11 +493,11 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Fisher Transform')
-    axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
+    axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=44,  # Reduced font size
+                           fontsize=55,  # Reduced font size
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
@@ -505,43 +505,43 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     # Bias plot
     axes[plot_idx].plot(data.index, data['Bias'],
                        color='gray',
-                       linewidth=4.0,
+                       linewidth=5.0,
                        alpha=0.7,
                        label='Raw Bias')
     axes[plot_idx].plot(data.index, data['Bias_Smoothed'],
                        color='purple',
-                       linewidth=4.5,
+                       linewidth=5.5,
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Smoothed Bias')
-    axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
+    axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
 
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], 0.2,
                               where=data['Bias_Smoothed'] >= 0.2,
-                              facecolor='green', alpha=0.3, interpolate=True)
+                              facecolor='green', alpha=0.8, interpolate=True)
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], -0.2,
                               where=data['Bias_Smoothed'] <= -0.2,
-                              facecolor='red', alpha=0.3, interpolate=True)
+                              facecolor='red', alpha=0.8, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
-                           fontsize=44,  # Reduced font size
+                           fontsize=55,  # Reduced font size
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
 
     # Divergence score plot
-    bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
+    bar_width = 2.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
     axes[plot_idx].bar(data.index, data['Divergence_Score'],
                       color=np.where(data['Divergence_Score'] > 0, 'green', 'red'),
                       width=bar_width,
-                      alpha=0.7,
+                      alpha=0.1,
                       edgecolor='black',
-                      linewidth=1.0)
+                      linewidth=2.0)
 
-    axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
+    axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=3.5)
+    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=3.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=3.0)
 
     strong_bullish = data['Divergence_Score'] >= 3
     strong_bearish = data['Divergence_Score'] <= -3
@@ -554,12 +554,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                          edgecolor='black', linewidth=2.5,
                          label='Strong Bearish')
     axes[plot_idx].set_title('ANTI-SYMMETRIC BIDIVERGENCE SCORE',
-                           fontsize=44,  # Reduced font size
+                           fontsize=55,  # Reduced font size
                            fontweight='bold',
                            pad=15)
 
     # Adjust layout with more padding
-    fig.tight_layout(pad=4.0, h_pad=3.0, w_pad=4.0)
+    fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=3.0)
     fig.subplots_adjust(top=0.94, right=0.88, left=0.12)  # Adjusted margins
 
     webp_buf = compress_image(fig)
