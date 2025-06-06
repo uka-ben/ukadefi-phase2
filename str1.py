@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 import requests
 from scipy.signal import argrelextrema
 import time  
-from datetime import datetime, timezone
+from datetime import datetime
 import brotli
 import threading
 import queue
@@ -15,7 +15,7 @@ from PIL import Image
 import io
 import base64
 
-# Configure page layout and style with larger fonts
+# Configure page layout and style
 page_bg_img = """
 <style>
 [data-testid="stAppViewContainer"] {
@@ -28,7 +28,6 @@ page_bg_img = """
 }
 [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
     color: black;
-    font-size: 1.5rem !important;
 }
 footer {
     visibility: hidden;
@@ -38,14 +37,13 @@ header {
 }
 body {
     font-family: "Source Sans Pro", sans-serif;
-    font-size: 1.2rem !important;
 }
 .stButton>button {
     background-color: blue;
     color: white;
-    font-size: 1.3rem !important;
+    font-size: 16px;
     border-radius: 8px;
-    padding: 12px 28px;
+    padding: 10px 24px;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -55,7 +53,6 @@ body {
 }
 .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
     color: #2c3e50;
-    font-size: 2rem !important;
 }
 .stDataFrame {
     border-radius: 8px;
@@ -63,24 +60,6 @@ body {
 }
 .stProgress > div > div > div {
     background-color: #4CAF50;
-}
-.loading-spinner {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
-    font-size: 2.5rem !important;
-    font-weight: bold;
-    color: #2c3e50;
-}
-.stAlert {
-    font-size: 1.3rem !important;
-}
-.stToast {
-    font-size: 1.5rem !important;
-}
-.stCaption {
-    font-size: 1.3rem !important;
 }
 </style>
 """
@@ -98,9 +77,9 @@ def compress_data(data):
 def decompress_data(compressed_data):
     return json.loads(brotli.decompress(compressed_data).decode('utf-8'))
 
-def compress_image(fig, quality=100):
+def compress_image(fig, quality=80):
     png_buf = io.BytesIO()
-    fig.savefig(png_buf, format='png', dpi=150)
+    fig.savefig(png_buf, format='png', dpi=100)
     png_buf.seek(0)
     img = Image.open(png_buf)
     webp_buf = io.BytesIO()
@@ -146,7 +125,7 @@ class SSEClient:
             self.thread.join()
 
     def _run(self):
-        url = f"https://api.twelvedata.com/timeseries?apikey={self.api_key}&symbol={self.symbol}/USD&type=etf&timezone=UTC&interval={self.interval}"
+        url = f"https://api.twelvedata.com/timeseries?apikey={self.api_key}&symbol={self.symbol}/USD&type=etf&timezone=Africa/Lagos&interval={self.interval}"
         headers = {'Accept-Encoding': 'br'}
 
         try:
@@ -173,6 +152,45 @@ class SSEClient:
         except queue.Empty:
             return None
 
+# App header and info
+st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+234............]** **benjaminukaimo@gmail.com**") 
+image1 = Image.open("mypiclogo.png")
+st.image(image1)
+st.markdown(" ")
+st.subheader("VAPS 0.2 - Financial Market Modelling")
+
+st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.**")
+
+# Input controls
+col1, col2, col3 = st.columns(3)
+with col1:
+    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE","ENJ","NEAR","VTHO","TRUMP","JST","ETC","STX","MBOX","SAND","UNI","DYDX","RUNE","DENT", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
+with col2:
+    interval = st.selectbox("Interval", ["15min","1min", "5min", "30min", "1h",  "4h", "1day", "1week", "1month"])
+with col3:
+    market_type = st.selectbox("Market Type", ["Forex", "Crypto", "Stock"], index=0)
+
+# Sidebar controls
+st.sidebar.title("Controls")
+live_update = st.sidebar.checkbox("Live Update", True)
+lookback = st.sidebar.slider("Lookback Period (bars)", 50, 1000, 300)
+update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
+
+# Add refresh button
+if st.sidebar.button("🔄 Manual Refresh"):
+    st.session_state.force_refresh = True
+    st.rerun()
+
+# Alert configuration
+st.sidebar.title("Alert Settings")
+alert_enabled = st.sidebar.checkbox("Enable Alerts", True)
+alert_sound = st.sidebar.checkbox("Play Alert Sound", True)
+alert_types = st.sidebar.multiselect(
+    "Alert Types",
+    ["Bullish Divergence", "Bearish Divergence", "RSI Crossover"],
+    default=["Bullish Divergence", "Bearish Divergence"]
+)
+
 # Initialize session state
 if 'initialized' not in st.session_state:
     st.session_state.initialized = True
@@ -184,43 +202,8 @@ if 'initialized' not in st.session_state:
     st.session_state.alert_history = []
     st.session_state.sse_client = None
     st.session_state.last_data = None
-    st.session_state.last_update_time = None
-    st.session_state.chart_placeholder = st.empty()
+    st.session_state.force_refresh = False
     st.session_state.loading = True
-
-# App header and info with larger fonts
-st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+234............]** **benjaminukaimo@gmail.com**") 
-image1 = Image.open("mypiclogo.png")
-st.image(image1)
-st.markdown(" ")
-st.subheader("VAPS 0.2 - Financial Market Modelling")
-
-st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.**")
-
-# Input controls with larger fonts
-col1, col2, col3 = st.columns(3)
-with col1:
-    symbol = st.selectbox("Symbol", ["TRX", "ADA", "BTC", "BCH", "PEOPLE", "ETH", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "XAU", "EUR", "GBP", "AUD"])
-with col2:
-    interval = st.selectbox("Interval", ["15min","1min", "5min", "30min", "1h",  "4h", "1day", "1week", "1month"])
-with col3:
-    market_type = st.selectbox("Market Type", ["Forex", "Crypto", "Stock"], index=0)
-
-# Sidebar controls with larger fonts
-st.sidebar.title("Controls")
-live_update = st.sidebar.checkbox("Live Update", True)
-lookback = st.sidebar.slider("Lookback Period (bars)", 50, 1000, 300)
-update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 10)
-
-# Alert configuration with larger fonts
-st.sidebar.title("Alert Settings")
-alert_enabled = st.sidebar.checkbox("Enable Alerts", True)
-alert_sound = st.sidebar.checkbox("Play Alert Sound", True)
-alert_types = st.sidebar.multiselect(
-    "Alert Types",
-    ["Bullish Divergence", "Bearish Divergence", "RSI Crossover"],
-    default=["Bullish Divergence", "Bearish Divergence"]
-)
 
 # Technical indicator functions
 def compute_rsi(series, period=14):
@@ -292,10 +275,10 @@ def find_extrema(series, order=70):
     return maxima, minima
 
 # Data loading functions
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=60, show_spinner="Fetching market data...")
 def load_initial_data(symbol, interval, lookback, api_key):
     try:
-        url = f"https://api.twelvedata.com/time_series?apikey={api_key}&interval={interval}&symbol={symbol}/USD&type=etf&timezone=UTC&outputsize={lookback}"
+        url = f"https://api.twelvedata.com/time_series?apikey={api_key}&interval={interval}&symbol={symbol}/USD&type=etf&timezone=Africa/Lagos&outputsize={lookback}"
         headers = {'Accept-Encoding': 'br'}
         response = requests.get(url, headers=headers)
 
@@ -392,34 +375,30 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    # Increased dimensions for better visibility
-    width = 36  # Very wide
-    height_per_plot = 14  # Taller individual plots
-    height = height_per_plot * num_plots  # Total height
+    width = 30  # Very wide
+    height = 11 * num_plots  # Tall
 
-    fig = Figure(figsize=(width, height), dpi=100)
-    gs = fig.add_gridspec(num_plots, 1, height_ratios=[15] + [6]*len(visible_indicators))
+    fig = Figure(figsize=(width, height), dpi=70)
+    gs = fig.add_gridspec(num_plots, 1, height_ratios=[16] + [5]*len(visible_indicators))
 
     axes = [fig.add_subplot(gs[0])]
     for i in range(1, num_plots):
         axes.append(fig.add_subplot(gs[i], sharex=axes[0]))
 
-    # Configure all axes with larger fonts and thicker lines
     for ax in axes:
         ax.tick_params(axis='both', which='major',
-                      labelsize=38, width=4, length=10, pad=12)  # Increased sizes
-        ax.tick_params(axis='both', which='minor',
-                      labelsize=36, width=3, length=6, pad=10)
+                      labelsize=42, width=4, length=8, pad=8)
+        ax.tick_params(axis='both', which='major', labelsize=42)
 
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(38)  # Larger font size
+            item.set_fontsize(32)
             item.set_fontstyle('normal')
 
-        ax.grid(True, linestyle='-', linewidth=2.5, alpha=0.7)  # Thicker grid lines
+        ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
         ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_linewidth(3)  # Thicker bottom spine
+        ax.spines['bottom'].set_linewidth(2)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
@@ -429,111 +408,105 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     current_price = data['Close'].iloc[-1]
     current_time = data.index[-1].strftime('%H:%M UTC')
 
-    # Plot price with thicker lines
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
                     color=price_line_colors[i],
-                    linewidth=6.0,  # Thicker price line
+                    linewidth=5.0,
                     alpha=1.0,
                     solid_capstyle='round')
 
-    # Larger markers for divergences
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=300,  # Larger markers
-                   edgecolor='black', linewidth=3,  # Thicker borders
+                   color='green', marker='^', s=200,
+                   edgecolor='black', linewidth=2,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=300,  # Larger markers
-                   edgecolor='black', linewidth=3,  # Thicker borders
+                   color='red', marker='v', s=200,
+                   edgecolor='black', linewidth=2,
                    label='Bearish Div')
 
-    # Current price line with larger text
-    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=5.0)
+    axes[0].axhline(y=current_price, color='blue', linestyle='--', alpha=0.7, linewidth=4.0)
     axes[0].text(0.02, 0.95, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=42,  # Larger font
+                fontsize=36,
                 fontweight='bold',
                 va='top',
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=3, pad=8))
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=44,  # Larger title
+                     fontsize=32,
                      fontweight='bold',
-                     pad=25)
-    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=3.0)
+                     pad=20)
+    axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=2.5)
 
     plot_idx = 1
 
-    # RSI Plot with thicker lines
     for i in range(1, len(data)):
         axes[plot_idx].plot(data.index[i-1:i+1], data['RSI_10'].iloc[i-1:i+1],
                           color=rsi_10_colors[i],
-                          linewidth=5.0,  # Thicker line
+                          linewidth=4.0,
                           alpha=1.0,
                           solid_capstyle='round',
                           label='RSI 10' if i == 1 else "")
     axes[plot_idx].plot(data.index, data['RSI_22'],
                        color='orange',
-                       linewidth=5.0,  # Thicker line
+                       linewidth=4.0,
                        alpha=1.0,
                        label='RSI 22')
 
     current_rsi = data['RSI_10'].iloc[-1]
-    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=5.0)
+    axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=4.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
                           xy=(0.98, current_rsi),
                           xycoords=('axes fraction', 'data'),
-                          xytext=(-15, 0),  # More offset
+                          xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=38,  # Larger font
+                          fontsize=30,
                           fontweight='bold',
                           va='center',
                           ha='right',
-                          bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=2, pad=6))
+                          bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=1, pad=4))
 
-    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=3.5)
-    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=3.5)
+    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
+    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
-                           fontsize=40,  # Larger title
+                           fontsize=26,
                            fontweight='bold',
-                           pad=20)
+                           pad=15)
     plot_idx += 1
 
-    # Fisher Transform with thicker lines
     axes[plot_idx].plot(data.index, data['Ehlers_Fisher_Smoothed'],
                        color='darkorange',
-                       linewidth=6.0,  # Thicker line
+                       linewidth=4.5,
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Fisher Transform')
-    axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
+    axes[plot_idx].axhline(0.5, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=40,  # Larger title
+                           fontsize=32,
                            fontweight='bold',
-                           pad=20)
+                           pad=15)
     plot_idx += 1
 
-    # Bias Indicator with thicker lines
     axes[plot_idx].plot(data.index, data['Bias'],
                        color='gray',
-                       linewidth=5.0,  # Thicker line
+                       linewidth=4.0,
                        alpha=0.7,
                        label='Raw Bias')
     axes[plot_idx].plot(data.index, data['Bias_Smoothed'],
                        color='purple',
-                       linewidth=6.0,  # Thicker line
+                       linewidth=4.5,
                        alpha=1.0,
                        solid_capstyle='round',
                        label='Smoothed Bias')
-    axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
+    axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
 
     axes[plot_idx].fill_between(data.index, data['Bias_Smoothed'], 0.2,
                               where=data['Bias_Smoothed'] >= 0.2,
@@ -542,40 +515,39 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                               where=data['Bias_Smoothed'] <= -0.2,
                               facecolor='red', alpha=0.3, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
-                           fontsize=40,  # Larger title
+                           fontsize=26,
                            fontweight='bold',
-                           pad=20)
+                           pad=15)
     plot_idx += 1
 
-    # Divergence Score with thicker bars
-    bar_width = 1.5 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)  # Wider bars
+    bar_width = 1.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
     axes[plot_idx].bar(data.index, data['Divergence_Score'],
                       color=np.where(data['Divergence_Score'] > 0, 'green', 'red'),
                       width=bar_width,
                       alpha=0.7,
                       edgecolor='black',
-                      linewidth=2.0)  # Thicker bar borders
+                      linewidth=1.0)
 
-    axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=2.5)
-    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=2.0)
+    axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=1.5)
+    axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=1.0)
 
     strong_bullish = data['Divergence_Score'] >= 3
     strong_bearish = data['Divergence_Score'] <= -3
     axes[plot_idx].scatter(data.index[strong_bullish], data['Divergence_Score'][strong_bullish],
-                         color='lime', marker='o', s=150,  # Larger markers
-                         edgecolor='black', linewidth=3.0,  # Thicker borders
+                         color='lime', marker='o', s=100,
+                         edgecolor='black', linewidth=2.5,
                          label='Strong Bullish')
     axes[plot_idx].scatter(data.index[strong_bearish], data['Divergence_Score'][strong_bearish],
-                         color='darkred', marker='o', s=150,  # Larger markers
-                         edgecolor='black', linewidth=3.0,  # Thicker borders
+                         color='darkred', marker='o', s=100,
+                         edgecolor='black', linewidth=2.5,
                          label='Strong Bearish')
     axes[plot_idx].set_title('ANTI-SYMMETRIC BIDIVERGENCE SCORE',
-                           fontsize=40,  # Larger title
+                           fontsize=32,
                            fontweight='bold',
-                           pad=20)
+                           pad=15)
 
-    fig.tight_layout(pad=4.0, h_pad=3.0, w_pad=3.0)  # More padding
+    fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=2.0)
     fig.subplots_adjust(top=0.94, right=0.95)
 
     webp_buf = compress_image(fig)
@@ -727,21 +699,6 @@ def swing_3(data):
 
 def main_display():
     st.header(f"{symbol} ({interval}) Analysis")
-    
-    # Initialize chart placeholder if it doesn't exist
-    if 'chart_placeholder' not in st.session_state:
-        st.session_state.chart_placeholder = st.empty()
-
-    # Add larger refresh button
-    if st.button("🔄 Refresh Chart", key="refresh_button"):
-        st.session_state.last_data = None
-        st.session_state.loading = True
-        st.rerun()
-
-    if st.session_state.loading:
-        with st.spinner("Please wait, the anti-symmetric synthesizer is working..."):
-            time.sleep(2)
-        st.session_state.loading = False
 
     if live_update and st.session_state.sse_client is None:
         st.session_state.sse_client = SSEClient(api_key, symbol, interval, lookback)
@@ -767,11 +724,18 @@ def main_display():
         st.warning("No data available - check your API key and symbol")
         return
 
-    fig_buf, current_signals = swing_3(data)
-    
-    # Update the chart in the placeholder
-    with st.session_state.chart_placeholder.container():
-        st.image(fig_buf, use_column_width=True)
+    # Show loading message while processing
+    if st.session_state.loading:
+        with st.spinner("Please wait, the anti-symmetric synthesizer is working..."):
+            fig_buf, current_signals = swing_3(data)
+            st.session_state.loading = False
+    else:
+        fig_buf, current_signals = swing_3(data)
+
+    # Use a container to prevent flickering
+    chart_container = st.empty()
+    with chart_container.container():
+        st.image(fig_buf, use_container_width=True)
 
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
@@ -782,30 +746,37 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
-    # Use UTC time consistently with larger font
-    current_utc_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-    st.markdown(f"<p style='font-size: 1.4rem;'>Last update: {current_utc_time} | {len(data)} bars loaded</p>", unsafe_allow_html=True)
+    st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
 
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
-            cols[0].markdown(f"<p style='font-size: 1.2rem;'>{alert['timestamp'].strftime('%H:%M:%S')}</p>", unsafe_allow_html=True)
+            cols[0].write(alert['timestamp'].strftime('%H:%M:%S'))
 
             if alert['type'] == "Bullish Divergence":
-                cols[1].success(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].success(alert['type'])
             elif alert['type'] == "Bearish Divergence":
-                cols[1].error(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].error(alert['type'])
             else:
-                cols[1].warning(f"<p style='font-size: 1.2rem;'>{alert['type']}</p>", unsafe_allow_html=True)
+                cols[1].warning(alert['type'])
 
-            cols[2].markdown(f"<p style='font-size: 1.2rem;'>{alert['price']:.4f}</p>", unsafe_allow_html=True)
+            cols[2].write(f"{alert['price']:.4f}")
 
 # Run the app
 if __name__ == "__main__":
+    placeholder = st.empty()
+    
     while True:
-        main_display()
-        
-        if not live_update:
-            st.stop()
+        with placeholder.container():
+            main_display()
             
-        time.sleep(max(update_interval, 5))
+            # Reset force refresh flag after processing
+            if st.session_state.get('force_refresh', False):
+                st.session_state.force_refresh = False
+                st.session_state.loading = True
+                st.rerun()
+
+        if not live_update:
+            break
+
+        time.sleep(max(update_interval, 30))
