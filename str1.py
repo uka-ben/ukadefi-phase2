@@ -396,10 +396,10 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(40)  # Slightly reduced font size
+            item.set_fontsize(60)  # Slightly reduced font size
             item.set_fontstyle('normal')
 
-        ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.7)
+        ax.grid(True, linestyle='-', linewidth=1.0, alpha=0.7)
         ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_linewidth(2)
         ax.spines['top'].set_visible(False)
