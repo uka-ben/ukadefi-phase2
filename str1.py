@@ -396,7 +396,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(60)  # Slightly reduced font size
+            item.set_fontsize(45)  # Slightly reduced font size
             item.set_fontstyle('normal')
 
         ax.grid(True, linestyle='-', linewidth=1.0, alpha=0.7)
@@ -438,7 +438,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[0].text(0.09, 1.10, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=42,  # Reduced font size
+                fontsize=60,  # Reduced font size
                 fontweight='bold',
                 va='top',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
