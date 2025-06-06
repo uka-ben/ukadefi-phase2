@@ -376,7 +376,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     num_plots = 1 + len(visible_indicators)
 
     width = 40  # Very wide
-    height = 11 * num_plots  # Tall
+    height = 17 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[13] + [5]*len(visible_indicators))
