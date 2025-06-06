@@ -444,7 +444,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=44,  # Reduced font size
+                     fontsize=70,  # Reduced font size
                      fontweight='bold',
                      pad=20)
     axes[0].grid(True, linestyle='-', alpha=0.7, linewidth=8.5)
