@@ -375,7 +375,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     visible_indicators = ["RSI", "Fisher", "Bias", "Divergence"]
     num_plots = 1 + len(visible_indicators)
 
-    width = 50  # Very wide
+    width = 45  # Very wide
     height = 25 * num_plots  # Tall
 
     fig = Figure(figsize=(width, height), dpi=70)
@@ -473,7 +473,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
     axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=2.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
-                           fontsize=26,
+                           fontsize=50,
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
