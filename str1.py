@@ -540,7 +540,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                       linewidth=2.0)
 
     axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=3.5)
-    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=3.5)
+    axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=0.5, linewidth=3.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=3.0)
 
     strong_bullish = data['Divergence_Score'] >= 3
