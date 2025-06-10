@@ -424,12 +424,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     # Divergence markers
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == 1],
                    data['Close'][data['Confirmed_Divergence'] == 1],
-                   color='green', marker='^', s=600,
+                   color='green', marker='^', s=1000,
                    edgecolor='black', linewidth=8,
                    label='Bullish Div')
     axes[0].scatter(data.index[data['Confirmed_Divergence'] == -1],
                    data['Close'][data['Confirmed_Divergence'] == -1],
-                   color='red', marker='v', s=600,
+                   color='red', marker='v', s=1000,
                    edgecolor='black', linewidth=8,
                    label='Bearish Div')
 
