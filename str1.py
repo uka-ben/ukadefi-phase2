@@ -533,9 +533,9 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     # Divergence score plot
     bar_width = 2.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
     axes[plot_idx].bar(data.index, data['Divergence_Score'],
-                      color=np.where(data['Divergence_Score'] > 0, 'green', 'red'),
+                      color=np.where(data['Divergence_Score'] > 0, 'lime', 'red'),
                       width=bar_width,
-                      alpha=0.1,
+                      alpha=0.7,
                       edgecolor='black',
                       linewidth=2.0)
 
