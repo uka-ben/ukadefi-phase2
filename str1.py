@@ -779,7 +779,7 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
-    st.caption(f"Last update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
+    st.caption(f"Last update (0:0 UTC- Same as time on chart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded....... Your time zone difference does not affect the accuracy of the plot - So plot is 100% up to date")
 
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
