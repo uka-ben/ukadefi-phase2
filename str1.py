@@ -77,22 +77,15 @@ def compress_data(data):
 def decompress_data(compressed_data):
     return json.loads(brotli.decompress(compressed_data).decode('utf-8'))
 
-def compress_image(fig, quality=60):  # Reduced quality from 80 to 60
-    # Use faster buffer with optimized settings
-    buf = io.BytesIO()
-    
-    # Save directly to WebP format (skip PNG intermediate step)
-    fig.savefig(
-        buf,
-        format='webp',  # Direct WebP output
-        dpi=50,         # Reduced from 70 to 50
-        quality=quality,
-        optimize=True,  # Enable optimization
-        bbox_inches='tight',  # Remove extra whitespace
-        pad_inches=0.1        # Minimal padding
-    )
-    buf.seek(0)
-    return buf
+def compress_image(fig, quality=60):
+    png_buf = io.BytesIO()
+    fig.savefig(png_buf, format='png', dpi=50)
+    png_buf.seek(0)
+    img = Image.open(png_buf)
+    webp_buf = io.BytesIO()
+    img.save(webp_buf, format='webp', quality=quality)
+    webp_buf.seek(0)
+    return webp_buf
 
 # Sound alert function
 def play_alert_sound(alert_type="neutral"):
