@@ -379,7 +379,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     width = 35  # Reduced width to prevent label cutoff
     height = 15 * num_plots  # Tall
     
-    fig = Figure(figsize=(width, height), dpi=40)
+    fig = Figure(figsize=(width, height), dpi=40, constrained_layout=True)
     gs = fig.add_gridspec(num_plots, 1, height_ratios=[17] + [5]*len(visible_indicators),
                          left=0.1, right=0.9)  # Added left/right margins
 
