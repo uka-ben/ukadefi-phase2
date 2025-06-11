@@ -387,8 +387,11 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     for i in range(1, num_plots):
         axes.append(fig.add_subplot(gs[i], sharex=axes[0]))
 
-    # Adjust label sizes and positions
+    # Enhanced grid and tick parameters
     for ax in axes:
+        # Make grid lines more visible
+        ax.grid(True, linestyle='-', linewidth=2.5, alpha=0.7, color='gray')
+        
         ax.tick_params(axis='both', which='major',
                       labelsize=55, width=4, length=8, pad=8)
         ax.tick_params(axis='both', which='minor', labelsize=50)
@@ -396,17 +399,16 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                      ax.get_xticklabels() + ax.get_yticklabels()):
             item.set_fontweight('bold')
-            item.set_fontsize(45)  # Slightly reduced font size
+            item.set_fontsize(45)
             item.set_fontstyle('normal')
 
-        ax.grid(True, linestyle='-', linewidth=1.0, alpha=1.0)
         ax.spines['left'].set_visible(False)
         ax.spines['bottom'].set_linewidth(2)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
         # Adjust y-axis label position
-        ax.yaxis.set_label_coords(0.92, 0.5)  # Moved labels inward
+        ax.yaxis.set_label_coords(0.92, 0.5)
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
@@ -438,13 +440,13 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[0].text(0.09, 1.10, f'{current_price:.5f} ({current_time})',
                 transform=axes[0].transAxes,
                 color='blue',
-                fontsize=60,  # Reduced font size
+                fontsize=60,
                 fontweight='bold',
                 va='top',
                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='blue', linewidth=2, pad=5))
 
     axes[0].set_title(f'{market_type}: {symbol} ({interval})',
-                     fontsize=70,  # Reduced font size
+                     fontsize=70,
                      fontweight='bold',
                      pad=20)
     axes[0].grid(True, linestyle='-', alpha=0.9, linewidth=8.5)
@@ -464,6 +466,27 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                        alpha=1.0,
                        label='RSI 22')
 
+    # Enhanced RSI level lines
+    axes[plot_idx].axhline(70, color='red', linestyle='-', alpha=0.9, linewidth=5.0)
+    axes[plot_idx].axhline(30, color='green', linestyle='-', alpha=0.9, linewidth=5.0)
+    
+    # Add labels for the RSI levels
+    axes[plot_idx].text(0.01, 0.72, '70 (low void)',
+                      transform=axes[plot_idx].transAxes,
+                      color='red',
+                      fontsize=45,
+                      fontweight='bold',
+                      va='center',
+                      bbox=dict(facecolor='white', alpha=0.8, edgecolor='red', linewidth=2))
+    
+    axes[plot_idx].text(0.01, 0.32, '30 (high void)',
+                      transform=axes[plot_idx].transAxes,
+                      color='green',
+                      fontsize=45,
+                      fontweight='bold',
+                      va='center',
+                      bbox=dict(facecolor='white', alpha=0.8, edgecolor='green', linewidth=2))
+
     current_rsi = data['RSI_10'].iloc[-1]
     axes[plot_idx].axhline(y=current_rsi, color='blue', linestyle='--', alpha=1.0, linewidth=10.0)
     axes[plot_idx].annotate(f'{current_rsi:.2f}',
@@ -472,16 +495,14 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                           xytext=(-10, 0),
                           textcoords='offset points',
                           color='blue',
-                          fontsize=50,  # Reduced font size
+                          fontsize=50,
                           fontweight='bold',
                           va='center',
                           ha='right',
                           bbox=dict(facecolor='white', alpha=0.8, edgecolor='black', linewidth=5, pad=4))
 
-    axes[plot_idx].axhline(70, color='gray', linestyle='--', alpha=1.0, linewidth=4.5)
-    axes[plot_idx].axhline(30, color='gray', linestyle='--', alpha=1.0, linewidth=4.5)
     axes[plot_idx].set_title('STRENGTH INDICATOR',
-                           fontsize=44,  # Reduced font size
+                           fontsize=44,
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
@@ -497,7 +518,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(-0.5, color='green', linestyle='--', alpha=1.0, linewidth=3.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=3.0)
     axes[plot_idx].set_title('FISHER TRANSFORMATION',
-                           fontsize=55,  # Reduced font size
+                           fontsize=55,
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
@@ -525,7 +546,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                               where=data['Bias_Smoothed'] <= -0.2,
                               facecolor='red', alpha=1.0, interpolate=True)
     axes[plot_idx].set_title('MARKET BIAS INDICATOR',
-                           fontsize=55,  # Reduced font size
+                           fontsize=55,
                            fontweight='bold',
                            pad=15)
     plot_idx += 1
@@ -554,13 +575,13 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                          edgecolor='black', linewidth=3.5,
                          label='Strong Bearish')
     axes[plot_idx].set_title('ANTI-SYMMETRIC BIDIVERGENCE SCORE',
-                           fontsize=55,  # Reduced font size
+                           fontsize=55,
                            fontweight='bold',
                            pad=15)
 
     # Adjust layout with more padding
     fig.tight_layout(pad=3.0, h_pad=2.0, w_pad=3.0)
-    fig.subplots_adjust(top=0.94, right=0.88, left=0.12)  # Adjusted margins
+    fig.subplots_adjust(top=0.94, right=0.88, left=0.12)
 
     webp_buf = compress_image(fig)
     plt.close(fig)
