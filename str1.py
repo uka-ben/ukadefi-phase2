@@ -581,7 +581,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     # Adjust layout with more padding
     #fig.tight_layout()
-    fig.subplots_adjust(top=0.94, right=0.88, left=0.12)
+    #fig.subplots_adjust(top=0.94, right=0.88, left=0.12)
 
     webp_buf = compress_image(fig)
     plt.close(fig)
