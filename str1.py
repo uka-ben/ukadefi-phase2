@@ -449,7 +449,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=70,
                      fontweight='bold',
                      pad=20)
-    axes[0].grid(True, linestyle='-', alpha=0.9, linewidth=8.5)
+    axes[0].grid(True, linestyle='-', alpha=0.3, linewidth=5.0)
 
     # RSI plot
     plot_idx = 1
