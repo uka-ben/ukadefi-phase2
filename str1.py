@@ -153,7 +153,7 @@ class SSEClient:
             return None
 
 # App header and info
-st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **benjaminukaimo@gmail.com**") 
+st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+234............]** **benjaminukaimo@gmail.com**") 
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
@@ -412,12 +412,9 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
-    # Price plot with reduced grid alpha
+    # Price plot
     current_price = data['Close'].iloc[-1]
     current_time = data.index[-1].strftime('%H:%M UTC')
-
-    # Set specific grid parameters for price plot
-    axes[0].grid(True, linestyle='-', alpha=0.3, linewidth=1.5)  # Reduced alpha and linewidth
 
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
@@ -452,6 +449,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=70,
                      fontweight='bold',
                      pad=20)
+    axes[0].grid(True, linestyle='-', alpha=0.3, linewidth=5.0)
 
     # RSI plot
     plot_idx = 1
@@ -580,6 +578,10 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=55,
                            fontweight='bold',
                            pad=15)
+
+    # Adjust layout with more padding
+    #fig.tight_layout()
+    #fig.subplots_adjust(top=0.94, right=0.88, left=0.12)
 
     webp_buf = compress_image(fig)
     plt.close(fig)
@@ -779,40 +781,6 @@ def main_display():
 
     st.caption(f"Last update (0:0 UTC- Same as time on chart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded....... Your time zone difference does not affect the accuracy of the plot - So plot is 100% up to date")
 
-    # Enhanced description after the last update notification
-    st.markdown("""
-    ---
-    **About This Version:**  
-    This is the strongest trial version of VAPS 0.2, demonstrating only a fraction of the full system's capabilities. 
-    The complete application with enhanced features, real-time multi-asset monitoring, and advanced pattern recognition 
-    is available upon request. 
-
-    **System Capabilities Beyond Finance:**  
-    The core technology powering this system can be integrated across diverse domains including:
-    - Fraud Detection & Anomaly Detection
-    - Robotics Modeling & Autonomous Systems
-    - Predictive Maintenance in Industrial IoT
-    - Medical Diagnostics & Healthcare Analytics
-    - Natural Language Processing & Sentiment Analysis
-    - Computer Vision & Image Recognition
-    - Supply Chain Optimization
-    - Energy Consumption Forecasting
-
-    **Next Phase Development:**  
-    VAPS 0.3 (coming soon) will feature:
-    - Deep Reinforcement Learning with Multi-Environment Agents
-    - Adaptive Pattern Recognition Engine
-    - Cross-Asset Correlation Analysis
-    - Predictive Modeling with Uncertainty Quantification
-
-    **Access the Full System:**  
-    For licensing inquiries or custom integrations, please contact:  
-    📧 **benjaminukaimo@gmail.com**  
-    📞 **+2347067193071 (WhatsApp)**
-
-    *Note: This Streamlit version is limited to single-asset demonstration purposes only.*
-    """)
-
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
@@ -826,12 +794,6 @@ def main_display():
                 cols[1].warning(alert['type'])
 
             cols[2].write(f"{alert['price']:.4f}")
-
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("""
-    **Disclaimer:**  
-    This is a demonstration version. The full commercial system offers significantly enhanced capabilities and multi-asset support. Contact for licensing.
-    """)
 
 # Run the app
 if __name__ == "__main__":
