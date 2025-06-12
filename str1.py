@@ -164,7 +164,7 @@ st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthe
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
-        symbol = st.selectbox("Symbol", ["BTC", "XAU", "EUR", "ETH", "TRX", "ADA",  "BCH", "PEOPLE", "IOTX", "SOL", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE","ENJ","NEAR","VTHO","TRUMP","JST","ETC","STX","MBOX","SAND","UNI","DYDX","RUNE","DENT", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "GBP", "AUD"])
+        symbol = st.selectbox("Symbol", ["BTC","SOL", "ETH", "TRX", "ADA",  "BCH", "PEOPLE", "IOTX", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE","ENJ","NEAR","VTHO","TRUMP","JST","ETC","STX","MBOX","SAND","UNI","DYDX","RUNE","DENT", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "GBP", "AUD","XAU", "EUR",])
 with col2:
     interval = st.selectbox("Interval", ["1h", "15min", "5min", "30min",  "4h", "1day", "1week", "1month"])
 with col3:
@@ -390,7 +390,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     # Enhanced grid and tick parameters
     for ax in axes:
         # Make grid lines more visible
-        ax.grid(True, linestyle='-', linewidth=2.5, alpha=0.7, color='gray')
+        ax.grid(True, linestyle='-', linewidth=1.5, alpha=0.5, color='gray')
         
         ax.tick_params(axis='both', which='major',
                       labelsize=55, width=4, length=8, pad=8)
@@ -471,7 +471,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
     axes[plot_idx].axhline(30, color='green', linestyle='-', alpha=0.9, linewidth=5.0)
     
     # Add labels for the RSI levels
-    axes[plot_idx].text(0.01, 0.72, '70 (low void)',
+    axes[plot_idx].text(0.01, 0.72, 'low void',
                       transform=axes[plot_idx].transAxes,
                       color='red',
                       fontsize=45,
@@ -479,7 +479,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                       va='center',
                       bbox=dict(facecolor='white', alpha=0.8, edgecolor='red', linewidth=2))
     
-    axes[plot_idx].text(0.01, 0.32, '30 (high void)',
+    axes[plot_idx].text(0.01, 0.32, 'high void',
                       transform=axes[plot_idx].transAxes,
                       color='green',
                       fontsize=45,
