@@ -161,6 +161,9 @@ st.subheader("VAPS 0.2 - Financial Market Modelling")
 
 st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.**")
 
+st.markdown("*** 0.3 coming soon. The next version will integrate deep reinforcement learning. And it'll build on the strengths of this version 0.2 as part of the DRL environment.*** please contact me for the real application this is only streamlit version that showcases only 5% of the entire system")
+
+
 # Input controls
 col1, col2, col3 = st.columns(3)
 with col1:
