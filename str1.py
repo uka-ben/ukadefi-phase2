@@ -153,7 +153,7 @@ class SSEClient:
             return None
 
 # App header and info
-st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+234............]** **benjaminukaimo@gmail.com**") 
+st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+2347067193071]** **benjaminukaimo@gmail.com**") 
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
@@ -204,6 +204,7 @@ if 'initialized' not in st.session_state:
     st.session_state.last_data = None
     st.session_state.force_refresh = False
     st.session_state.loading = True
+    st.session_state.description_shown = False
 
 # Technical indicator functions
 def compute_rsi(series, period=14):
@@ -412,9 +413,12 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
         ax.yaxis.tick_right()
         ax.yaxis.set_label_position("right")
 
-    # Price plot
+    # Price plot with reduced grid alpha
     current_price = data['Close'].iloc[-1]
     current_time = data.index[-1].strftime('%H:%M UTC')
+
+    # Set specific grid parameters for price plot
+    axes[0].grid(True, linestyle='-', alpha=0.3, linewidth=1.5)  # Reduced alpha and linewidth
 
     for i in range(1, len(data)):
         axes[0].plot(data.index[i-1:i+1], data['Close'].iloc[i-1:i+1],
@@ -449,7 +453,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                      fontsize=70,
                      fontweight='bold',
                      pad=20)
-    axes[0].grid(True, linestyle='-', alpha=0.3, linewidth=5.0)
 
     # RSI plot
     plot_idx = 1
@@ -578,10 +581,6 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
                            fontsize=55,
                            fontweight='bold',
                            pad=15)
-
-    # Adjust layout with more padding
-    #fig.tight_layout()
-    #fig.subplots_adjust(top=0.94, right=0.88, left=0.12)
 
     webp_buf = compress_image(fig)
     plt.close(fig)
@@ -765,7 +764,7 @@ def main_display():
     else:
         fig_buf, current_signals = swing_3(data)
 
-    # Use a container to prevent flickering
+    # Use a dedicated container for the chart
     chart_container = st.empty()
     with chart_container.container():
         st.image(fig_buf, use_container_width=True)
@@ -779,8 +778,30 @@ def main_display():
 
     st.session_state.previous_signals = current_signals
 
-    st.caption(f"Last update (0:0 UTC- Same as time on chart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded....... Your time zone difference does not affect the accuracy of the plot - So plot is 100% up to date")
+    st.caption(f"Last update (0:0 UTC- Same as time on chart: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {len(data)} bars loaded")
 
+    # Description section - only shown once
+    if not st.session_state.description_shown:
+        with st.expander("About VAPS 0.2", expanded=True):
+            st.markdown("""
+            **Professional Version Features:**
+            - Real-time multi-asset monitoring
+            - Advanced pattern recognition
+            - Customizable alert systems
+            - Institutional-grade analytics
+            
+            **Applications Beyond Finance:**
+            - Fraud detection systems
+            - Predictive maintenance
+            - AI-driven diagnostics
+            
+            **Contact for full version:**  
+            📧 benjaminukaimo@gmail.com  
+            📞 +2347067193071 (WhatsApp)
+            """)
+        st.session_state.description_shown = True
+
+    # Alert history in sidebar
     with st.sidebar.expander("Recent Alerts", expanded=True):
         for alert in reversed(st.session_state.alert_history[-10:]):
             cols = st.columns([1, 2, 1])
@@ -795,6 +816,12 @@ def main_display():
 
             cols[2].write(f"{alert['price']:.4f}")
 
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("""
+    **Disclaimer:**  
+    Trial version - contact for commercial licensing.
+    """)
+
 # Run the app
 if __name__ == "__main__":
     placeholder = st.empty()
@@ -803,7 +830,6 @@ if __name__ == "__main__":
         with placeholder.container():
             main_display()
             
-            # Reset force refresh flag after processing
             if st.session_state.get('force_refresh', False):
                 st.session_state.force_refresh = False
                 st.session_state.loading = True
