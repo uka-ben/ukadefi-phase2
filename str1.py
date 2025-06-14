@@ -173,7 +173,7 @@ with col3:
 # Sidebar controls
 st.sidebar.title("Controls")
 live_update = st.sidebar.checkbox("Live Update", True)
-lookback = st.slider("Lookback Period (bars)", 50, 1000, 250)
+lookback = st.slider("Lookback Period (bars)", 50, 1000, 290)
 update_interval = st.sidebar.slider("Update Interval (seconds)", 5, 300, 30)
 
 # Add refresh button
