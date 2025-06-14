@@ -153,7 +153,7 @@ class SSEClient:
             return None
 
 # App header and info
-st.write("Developed with ❤️ by **Uka Benjamin Imo**  **[+234............]** **benjaminukaimo@gmail.com**") 
+st.write("Developed with ❤️ by **Uka Benjamin Imo**  **+2347067193071** **benjaminukaimo@gmail.com**") 
 image1 = Image.open("mypiclogo.png")
 st.image(image1)
 st.markdown(" ")
