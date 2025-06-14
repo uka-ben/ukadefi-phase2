@@ -23,7 +23,7 @@ page_bg_img = """
     color: black;
 }
 [data-testid="stSidebar"] {
-    background: linear-gradient(skyblue, blue) !important;
+    background: linear-gradient(skyblue, white) !important;
     color: black;
 }
 [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
