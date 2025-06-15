@@ -154,9 +154,9 @@ class SSEClient:
 
 # App header and info
 st.write("Developed with ❤️ by **Uka Benjamin Imo**  **+2347067193071** **benjaminukaimo@gmail.com**") 
-image1 = Image.open("mypiclogo.png")
-st.image(image1)
-st.markdown(" ")
+#image1 = Image.open("mypiclogo.png")
+#st.image(image1)
+#st.markdown(" ")
 st.subheader("VAPS 0.2 - Financial Market Modelling")
 
 st.markdown("**A Financial AI System Based on Void Anti-symmetric Pattern Synthesizer for Market Dynamics.** The next version will integrate deep reinforcement learning. And it'll build on the strengths of this version 0.2 as part of the DRL environment.*** please contact me for the real application this is only streamlit version that showcases only 5% of the entire system")
