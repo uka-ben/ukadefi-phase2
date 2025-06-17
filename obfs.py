@@ -211,27 +211,27 @@ def compute_void_resonance(void_series, phase_cycle=14):
     return 100 - (100 / (1 + void_ratio))
 
 def compute_void_oscillator(void_data, short_phase=12, long_phase=26, signal_phase=9):
-    void_line = void_data['Close'].ewm(span=short_phase, adjust=False).mean() - void_data['Close'].ewm(span=long_phase, adjust=False).mean()
+    void_line = void_data['Void-Close'].ewm(span=short_phase, adjust=False).mean() - void_data['Void-Close'].ewm(span=long_phase, adjust=False).mean()
     chrono_line = void_line.ewm(span=signal_phase, adjust=False).mean()
     return void_line, chrono_line
 
 def compute_void_triad(void_data, observation_window=14, smoothing_phase=3):
-    void_min = void_data['Low'].rolling(window=observation_window).min()
-    void_max = void_data['High'].rolling(window=observation_window).max()
-    k_phase = 100 * ((void_data['Close'] - void_min) / (void_max - void_min))
+    void_min = void_data['Void-Trough'].rolling(window=observation_window).min()
+    void_max = void_data['Void-Peak'].rolling(window=observation_window).max()
+    k_phase = 100 * ((void_data['Void-Close'] - void_min) / (void_max - void_min))
     d_phase = k_phase.rolling(window=smoothing_phase).mean()
     j_phase = 3 * k_phase - 2 * d_phase
     return k_phase, d_phase, j_phase
 
 def compute_void_distortion(void_data, distortion_window=30):
-    void_pivot = (void_data['High'] + void_data['Low'] + void_data['Close']) / 3
+    void_pivot = (void_data['Void-Peak'] + void_data['Void-Trough'] + void_data['Void-Close']) / 3
     void_mean = void_pivot.rolling(window=distortion_window).mean()
     void_deviation = void_pivot.rolling(window=distortion_window).apply(lambda x: np.mean(np.abs(x - np.mean(x))))
     void_distortion = (void_pivot - void_mean) / (0.015 * void_deviation)
     return void_distortion
 
 def compute_void_transformation(void_data, transformation_phase=32):
-    void_midpoint = (void_data['High'] + void_data['Low']) / 2
+    void_midpoint = (void_data['Void-Peak'] + void_data['Void-Trough']) / 2
     void_peak = void_midpoint.rolling(window=transformation_phase).max()
     void_trough = void_midpoint.rolling(window=transformation_phase).min()
     normalized_void = 0.66 * ((void_midpoint - void_trough) / (void_peak - void_trough) - 0.5)
@@ -241,7 +241,7 @@ def compute_void_transformation(void_data, transformation_phase=32):
     return quantum_transform, smoothed_transform
 
 def compute_void_momentum(void_data, momentum_window=20, long_smooth=5, short_smooth=3):
-    void_center = (void_data['High'] + void_data['Low']) / 2
+    void_center = (void_data['Void-Peak'] + void_data['Void-Trough']) / 2
     phase_shift = void_center.diff(momentum_window)
     quantum_momentum = void_center - void_center.shift(momentum_window)
     ergodic_flow = quantum_momentum.ewm(span=long_smooth, adjust=False).mean()
@@ -249,7 +249,7 @@ def compute_void_momentum(void_data, momentum_window=20, long_smooth=5, short_sm
     return ergodic_flow, trigger_flow
 
 def compute_void_polarity(void_data):
-    resonance_polarity = (void_data['Void_Resonance'] - 50) / 50
+    resonance_polarity = (void_data['Void_Resonance_14'] - 50) / 50
     oscillator_polarity = void_data['Void_Oscillator'] / (2 * void_data['Void_Oscillator'].std())
     distortion_polarity = void_data['Void_Distortion'] / 200
     quantum_polarity = 0.4 * resonance_polarity + 0.3 * oscillator_polarity + 0.3 * distortion_polarity
@@ -257,10 +257,10 @@ def compute_void_polarity(void_data):
     return quantum_polarity, smoothed_polarity
 
 def compute_void_inertia(void_data, inertia_window=30, inertia_smooth=10):
-    phase_numerator = (void_data['Close'] - void_data['Open']).rolling(window=inertia_window).mean()
-    phase_denominator = (void_data['High'] - void_data['Low']).rolling(window=inertia_window).mean()
+    phase_numerator = (void_data['Void-Close'] - void_data['Void-Open']).rolling(window=inertia_window).mean()
+    phase_denominator = (void_data['Void-Peak'] - void_data['Void-Trough']).rolling(window=inertia_window).mean()
     void_velocity = phase_numerator / phase_denominator
-    phase_changes = void_data['Close'].diff()
+    phase_changes = void_data['Void-Close'].diff()
     phase_std = phase_changes.rolling(window=inertia_window).std()
     quantum_inertia = void_velocity * phase_std
     smoothed_inertia = quantum_inertia.ewm(span=inertia_smooth, adjust=False).mean()
