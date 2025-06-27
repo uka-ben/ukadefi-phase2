@@ -607,7 +607,7 @@ def swing_3(data):
     data['Inertia'], data['Inertia_Smoothed'] = compute_inertia_indicator(data)
 
     # Find extrema
-    maxima, minima = find_extrema(data['Close'], order=30)
+    maxima, minima = find_extrema(data['Close'], order=60)
 
     # Compute divergences
     data['DIV_RSI'] = np.where(
