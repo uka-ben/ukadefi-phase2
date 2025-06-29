@@ -598,9 +598,9 @@ def swing_3(data):
 
         if divergence_active:
             if divergence_type == 1:  # Bullish divergence
-                # Check if RSI10 crosses below RSI22 by more than 30 in last 5 bars
+                # Check if RSI10 crosses below RSI22 by more than 20 in last 5 bars
                 rsi_cross_condition = any(
-                    (data['RSI_10'].iloc[i-j] - data['RSI_22'].iloc[i-j]) < -30 
+                    (data['RSI_10'].iloc[i-j] - data['RSI_22'].iloc[i-j]) < -20 
                     for j in range(min(5, i+1))
                 )
                 bias_confirm = data['Bias_Smoothed'].iloc[i] > 0
@@ -612,7 +612,7 @@ def swing_3(data):
             elif divergence_type == -1:  # Bearish divergence
                 # Check if RSI10 crosses above RSI22 by more than 30 in last 5 bars
                 rsi_cross_condition = any(
-                    (data['RSI_10'].iloc[i-j] - data['RSI_22'].iloc[i-j]) > 30 
+                    (data['RSI_10'].iloc[i-j] - data['RSI_22'].iloc[i-j]) > 20 
                     for j in range(min(5, i+1))
                 )
                 bias_confirm = data['Bias_Smoothed'].iloc[i] < 0
