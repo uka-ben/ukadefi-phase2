@@ -446,7 +446,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     # Divergence score plot
     bar_width = 2.2 * (data.index[1] - data.index[0]).total_seconds() / (24 * 3600)
-    axes[plot_idx].bar(data.index, data['Divergence_Score', color=np.where(data['Divergence_Score'] > 0, 'lime', 'red'), width=bar_width, alpha=1.0, edgecolor='black', linewidth=2.0)
+    axes[plot_idx].bar(data.index, data['Divergence_Score', color=np.where(data['Divergence_Score'] > 0, 'lime', 'red'), width=bar_width, alpha=1.0, edgecolor='black', linewidth=2.0))
     axes[plot_idx].axhline(3, color='green', linestyle='--', alpha=1.0, linewidth=3.5)
     axes[plot_idx].axhline(-3, color='red', linestyle='--', alpha=1.0, linewidth=3.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=3.0)
