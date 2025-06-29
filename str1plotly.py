@@ -435,7 +435,7 @@ def create_plot(data, price_line_colors, rsi_10_colors, symbol, interval, market
 
     # Bias plot
     axes[plot_idx].plot(data.index, data['Bias'], color='gray', linewidth=8.0, alpha=1.0, label='Raw Bias')
-    axes[plot_idx].plot(data.index, data['Bias_Smoothed', color='purple', linewidth=5.5, alpha=1.0, solid_capstyle='round', label='Smoothed Bias')
+    axes[plot_idx].plot(data.index, data['Bias_Smoothed'], color='purple', linewidth=5.5, alpha=1.0, solid_capstyle='round', label='Smoothed Bias')
     axes[plot_idx].axhline(0.3, color='red', linestyle='--', alpha=1.0, linewidth=3.5)
     axes[plot_idx].axhline(-0.3, color='green', linestyle='--', alpha=1.0, linewidth=3.5)
     axes[plot_idx].axhline(0, color='black', linestyle='-', alpha=1.0, linewidth=3.0)
