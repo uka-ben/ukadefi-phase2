@@ -166,7 +166,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
         symbol = st.selectbox("Symbol", ["SOL", "ETH","BTC","TRX", "ADA",  "BCH", "PEOPLE", "IOTX", "POL","ATOM", "C98", "AAVE","DOT","MANA","CAKE", "XRP","ALICE", "BNB", "EOS", "ONE","ENJ","NEAR","VTHO","TRUMP","CRO","TLM","LUNC","ETC","STX","MBOX","SAND","UNI","DYDX","RUNE","DENT", "SHIB", "DOGE", "HOT", "CELR", "VET", "XLM", "ALGO", "GBP", "AUD","XAU", "EUR",])
 with col2:
-    interval = st.selectbox("Interval", ["1h", "15min", "5min", "30min",  "4h", "1day", "1week", "1month"])
+    interval = st.selectbox("Interval", ["1h", "15min", "5min", "30min",  "4h", "1day", "1week", "1month", "1min"])
 with col3:
     market_type = st.selectbox("Market Type", ["Forex", "Crypto", "Stock"], index=0)
 
