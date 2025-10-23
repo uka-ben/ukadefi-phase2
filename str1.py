@@ -768,7 +768,8 @@ def main_display():
     # Use a container to prevent flickering
     chart_container = st.empty()
     with chart_container.container():
-        st.image(fig_buf, use_container_width=True)
+        # FIXED: Replace use_container_width with width='stretch'
+        st.image(fig_buf, width='stretch')
 
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
