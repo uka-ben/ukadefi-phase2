@@ -61,6 +61,11 @@ body {
 .stProgress > div > div > div {
     background-color: #4CAF50;
 }
+/* Custom CSS to ensure images stretch properly */
+.stImage img {
+    width: 100% !important;
+    height: auto !important;
+}
 </style>
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
@@ -768,8 +773,22 @@ def main_display():
     # Use a container to prevent flickering
     chart_container = st.empty()
     with chart_container.container():
-        # FIXED: Replace use_container_width with width='stretch'
-        st.image(fig_buf, width='stretch')
+        # Try multiple approaches to ensure the image stretches
+        try:
+            # Approach 1: Use the new width parameter
+            st.image(fig_buf, width='stretch')
+        except:
+            try:
+                # Approach 2: Use use_container_width as fallback
+                st.image(fig_buf, use_container_width=True)
+            except:
+                # Approach 3: Convert to base64 and use HTML for maximum control
+                fig_buf.seek(0)
+                image_base64 = base64.b64encode(fig_buf.read()).decode()
+                st.markdown(
+                    f'<img src="data:image/webp;base64,{image_base64}" style="width:100%; height:auto;">',
+                    unsafe_allow_html=True
+                )
 
     if alert_enabled and live_update:
         new_signals = check_for_new_signals(current_signals)
