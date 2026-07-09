@@ -1,7 +1,6 @@
 streamlit
 flet
 
-matplotlib==3.8.3
 requests==2.31.0
 
 pygame==2.5.2
